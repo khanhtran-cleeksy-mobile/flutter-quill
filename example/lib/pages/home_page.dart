@@ -64,6 +64,16 @@ class _HomePageState extends State<HomePage> {
             document: doc, selection: const TextSelection.collapsed(offset: 0));
       });
     }
+    _controller!.addListener(() {
+      final controller = _controller!;
+      if (_selectionType == _SelectionType.word) {
+        final child = controller.document.queryChild(
+          controller.selection.baseOffset,
+        );
+        print(child.node?.style);
+      }
+      print(controller.getSelectionStyle().attributes);
+    });
   }
 
   @override
