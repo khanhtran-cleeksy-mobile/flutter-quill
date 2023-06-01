@@ -32,6 +32,8 @@ class _HomePageState extends State<HomePage> {
   final FocusNode _focusNode = FocusNode();
   Timer? _selectAllTimer;
   _SelectionType _selectionType = _SelectionType.none;
+  final _editorKey = GlobalKey<EditorState>();
+  final _editorID = UniqueKey().toString();
 
   @override
   void dispose() {
@@ -101,20 +103,6 @@ class _HomePageState extends State<HomePage> {
     _selectAllTimer?.cancel();
     _selectAllTimer = null;
 
-    // If you want to select all text after paragraph, uncomment this line
-    // if (_selectionType == _SelectionType.line) {
-    //   final selection = TextSelection(
-    //     baseOffset: 0,
-    //     extentOffset: controller.document.length,
-    //   );
-
-    //   controller.updateSelection(selection, ChangeSource.REMOTE);
-
-    //   _selectionType = _SelectionType.none;
-
-    //   return true;
-    // }
-
     if (controller.selection.isCollapsed) {
       _selectionType = _SelectionType.none;
     }
@@ -161,6 +149,8 @@ class _HomePageState extends State<HomePage> {
     Widget quillEditor = MouseRegion(
       cursor: SystemMouseCursors.text,
       child: QuillEditor(
+        editorKey: _editorKey,
+        key: Key(_editorID),
         controller: _controller!,
         scrollController: ScrollController(),
         scrollable: true,
@@ -198,6 +188,8 @@ class _HomePageState extends State<HomePage> {
       quillEditor = MouseRegion(
         cursor: SystemMouseCursors.text,
         child: QuillEditor(
+            editorKey: _editorKey,
+            key: Key(_editorID),
             controller: _controller!,
             scrollController: ScrollController(),
             scrollable: true,
