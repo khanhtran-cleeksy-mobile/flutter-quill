@@ -63,6 +63,7 @@ class QuillToolbar extends StatelessWidget implements PreferredSizeWidget {
     VoidCallback? afterButtonPressed,
     this.sectionDividerColor,
     this.sectionDividerSpace,
+    this.linkDialog,
     Key? key,
   }) : super(key: key);
 
@@ -153,6 +154,9 @@ class QuillToolbar extends StatelessWidget implements PreferredSizeWidget {
 
     /// The space occupied by toolbar divider
     double? sectionDividerSpace,
+    
+    /// Custom link dialog
+    Widget? Function(String? link, String? text)? linkDialog,
     Key? key,
   }) {
     final isButtonGroupShown = [
@@ -550,6 +554,7 @@ class QuillToolbar extends StatelessWidget implements PreferredSizeWidget {
             iconTheme: iconTheme,
             dialogTheme: dialogTheme,
             afterButtonPressed: afterButtonPressed,
+            linkDialog: linkDialog,
           ),
         if (showSearchButton)
           SearchButton(
@@ -609,6 +614,8 @@ class QuillToolbar extends StatelessWidget implements PreferredSizeWidget {
 
   /// The space occupied by toolbar section divider.
   final double? sectionDividerSpace;
+
+  final Widget? Function(String? link, String? text)? linkDialog;
 
   @override
   Size get preferredSize => axis == Axis.horizontal

@@ -18,6 +18,7 @@ class LinkStyleButton extends StatefulWidget {
     this.dialogTheme,
     this.afterButtonPressed,
     this.tooltip,
+    this.linkDialog,
     Key? key,
   }) : super(key: key);
 
@@ -28,6 +29,7 @@ class LinkStyleButton extends StatefulWidget {
   final QuillDialogTheme? dialogTheme;
   final VoidCallback? afterButtonPressed;
   final String? tooltip;
+  final Widget? Function(String? link, String? text)? linkDialog;
 
   @override
   _LinkStyleButtonState createState() => _LinkStyleButtonState();
@@ -88,7 +90,7 @@ class _LinkStyleButtonState extends State<LinkStyleButton> {
   }
 
   void _openLinkDialog(BuildContext context) {
-    showDialog<_TextLink>(
+    showDialog<TextLink>(
       context: context,
       builder: (ctx) {
         final link = _getLinkAttributeValue();
@@ -107,8 +109,12 @@ class _LinkStyleButtonState extends State<LinkStyleButton> {
         final len = widget.controller.selection.end - index;
         text ??=
             len == 0 ? '' : widget.controller.document.getPlainText(index, len);
-        return _LinkDialog(
-            dialogTheme: widget.dialogTheme, link: link, text: text);
+        return widget.linkDialog?.call(link, text) ??
+            _LinkDialog(
+              dialogTheme: widget.dialogTheme,
+              link: link,
+              text: text,
+            );
       },
     ).then(
       (value) {
@@ -124,7 +130,7 @@ class _LinkStyleButtonState extends State<LinkStyleButton> {
         ?.value;
   }
 
-  void _linkSubmitted(_TextLink value) {
+  void _linkSubmitted(TextLink value) {
     var index = widget.controller.selection.start;
     var length = widget.controller.selection.end - index;
     if (_getLinkAttributeValue() != null) {
@@ -239,12 +245,12 @@ class _LinkDialogState extends State<_LinkDialog> {
   }
 
   void _applyLink() {
-    Navigator.pop(context, _TextLink(_text.trim(), _link.trim()));
+    Navigator.pop(context, TextLink(_text.trim(), _link.trim()));
   }
 }
 
-class _TextLink {
-  _TextLink(
+class TextLink {
+  TextLink(
     this.text,
     this.link,
   );
