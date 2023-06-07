@@ -155,7 +155,10 @@ class Document {
   /// included in the result.
   Style collectStyle(int index, int len) {
     final res = queryChild(index);
-    return (res.node as Line).collectStyle(res.offset, len);
+    // -1 because the cursor is at the part of the line that is not visible
+    // Bug #1 https://app.cleeksy.com/work/770-feature/325394
+    return (res.node as Line).collectStyle(
+        len == 0 && res.node != null ? res.offset - 1 : res.offset, len);
   }
 
   /// Returns all styles for each node within selection
