@@ -145,6 +145,7 @@ class _LinkStyleButtonState extends State<LinkStyleButton> {
     widget.controller.replaceText(index, length, value.text, null);
     widget.controller
         .formatText(index, value.text.length, LinkAttribute(value.link));
+    widget.controller.moveCursorToPosition(index + length);
   }
 }
 
