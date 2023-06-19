@@ -442,7 +442,7 @@ class QuillEditor extends StatefulWidget {
 
 class QuillEditorState extends State<QuillEditor>
     implements EditorTextSelectionGestureDetectorBuilderDelegate {
-  late GlobalKey<EditorState> _editorKey = GlobalKey<EditorState>();
+  late GlobalKey<EditorState> _editorKey;
   late EditorTextSelectionGestureDetectorBuilder
       _selectionGestureDetectorBuilder;
 
