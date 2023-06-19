@@ -148,6 +148,7 @@ abstract class RenderAbstractEditor implements TextLayoutMetrics {
 
 class QuillEditor extends StatefulWidget {
   const QuillEditor({
+    this.editorKey,
     required this.controller,
     required this.focusNode,
     required this.scrollController,
@@ -195,6 +196,7 @@ class QuillEditor extends StatefulWidget {
 
   factory QuillEditor.basic({
     required QuillController controller,
+    GlobalKey<EditorState>? editorKey,
     required bool readOnly,
     Brightness? keyboardAppearance,
     Iterable<EmbedBuilder>? embedBuilders,
@@ -205,6 +207,7 @@ class QuillEditor extends StatefulWidget {
   }) {
     return QuillEditor(
       controller: controller,
+      editorKey: editorKey,
       scrollController: ScrollController(),
       scrollable: true,
       focusNode: FocusNode(),
@@ -217,6 +220,9 @@ class QuillEditor extends StatefulWidget {
       embedBuilders: embedBuilders,
     );
   }
+
+  /// Sang Pham added for show/hide mention list
+  final GlobalKey<EditorState>? editorKey;
 
   /// Controller object which establishes a link between a rich text document
   /// and this editor.
@@ -436,13 +442,14 @@ class QuillEditor extends StatefulWidget {
 
 class QuillEditorState extends State<QuillEditor>
     implements EditorTextSelectionGestureDetectorBuilderDelegate {
-  final GlobalKey<EditorState> _editorKey = GlobalKey<EditorState>();
+  late GlobalKey<EditorState> _editorKey = GlobalKey<EditorState>();
   late EditorTextSelectionGestureDetectorBuilder
       _selectionGestureDetectorBuilder;
 
   @override
   void initState() {
     super.initState();
+    _editorKey = widget.editorKey ?? GlobalKey<EditorState>();
     _selectionGestureDetectorBuilder =
         _QuillEditorSelectionGestureDetectorBuilder(
             this, widget.detectWordBoundary);
@@ -470,8 +477,8 @@ class QuillEditorState extends State<QuillEditor>
       selectionColor = selectionTheme.selectionColor ??
           cupertinoTheme.primaryColor.withOpacity(0.40);
       cursorRadius ??= const Radius.circular(2);
-      cursorOffset =
-          Offset(iOSHorizontalOffset / MediaQuery.of(context).devicePixelRatio, 0);
+      cursorOffset = Offset(
+          iOSHorizontalOffset / MediaQuery.of(context).devicePixelRatio, 0);
     } else {
       textSelectionControls = materialTextSelectionControls;
       paintCursorAboveText = false;
@@ -485,7 +492,7 @@ class QuillEditorState extends State<QuillEditor>
         widget.enableInteractiveSelection && widget.enableSelectionToolbar;
 
     final child = RawEditor(
-      key: _editorKey,
+     key: _editorKey,
       controller: widget.controller,
       focusNode: widget.focusNode,
       scrollController: widget.scrollController,
