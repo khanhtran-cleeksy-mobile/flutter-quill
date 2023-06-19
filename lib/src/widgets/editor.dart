@@ -46,6 +46,9 @@ abstract class EditorState extends State<RawEditor>
   /// The floating cursor is animated to merge with the regular cursor.
   AnimationController get floatingCursorResetController;
 
+  /// Returns true if the editor has been marked as needing to be rebuilt.
+  bool get dirty;
+
   bool showToolbar();
 
   void requestKeyboard();
@@ -145,8 +148,8 @@ abstract class RenderAbstractEditor implements TextLayoutMetrics {
 
 class QuillEditor extends StatefulWidget {
   const QuillEditor({
-    required this.controller,
     this.editorKey,
+    required this.controller,
     required this.focusNode,
     required this.scrollController,
     required this.scrollable,
@@ -193,7 +196,7 @@ class QuillEditor extends StatefulWidget {
 
   factory QuillEditor.basic({
     required QuillController controller,
-     GlobalKey<EditorState>? editorKey,
+    GlobalKey<EditorState>? editorKey,
     required bool readOnly,
     Brightness? keyboardAppearance,
     Iterable<EmbedBuilder>? embedBuilders,
@@ -489,7 +492,7 @@ class QuillEditorState extends State<QuillEditor>
         widget.enableInteractiveSelection && widget.enableSelectionToolbar;
 
     final child = RawEditor(
-      key: widget.editorKey,
+     key: _editorKey,
       controller: widget.controller,
       focusNode: widget.focusNode,
       scrollController: widget.scrollController,
