@@ -191,6 +191,7 @@ class QuillEditor extends StatefulWidget {
     this.enableUnfocusOnTapOutside = true,
     this.customLinkPrefixes = const <String>[],
     this.dialogTheme,
+    this.contextMenuBuilder,
     Key? key,
   }) : super(key: key);
 
@@ -436,6 +437,9 @@ class QuillEditor extends StatefulWidget {
   /// Configures the dialog theme.
   final QuillDialogTheme? dialogTheme;
 
+  /// Configures the context menu
+  final Widget Function(BuildContext, RawEditorState)? contextMenuBuilder;
+
   @override
   QuillEditorState createState() => QuillEditorState();
 }
@@ -492,7 +496,7 @@ class QuillEditorState extends State<QuillEditor>
         widget.enableInteractiveSelection && widget.enableSelectionToolbar;
 
     final child = RawEditor(
-     key: _editorKey,
+      key: _editorKey,
       controller: widget.controller,
       focusNode: widget.focusNode,
       scrollController: widget.scrollController,
@@ -502,8 +506,9 @@ class QuillEditorState extends State<QuillEditor>
       readOnly: widget.readOnly,
       placeholder: widget.placeholder,
       onLaunchUrl: widget.onLaunchUrl,
-      contextMenuBuilder:
-          showSelectionToolbar ? RawEditor.defaultContextMenuBuilder : null,
+      contextMenuBuilder: showSelectionToolbar
+          ? widget.contextMenuBuilder ?? RawEditor.defaultContextMenuBuilder
+          : null,
       showSelectionHandles: isMobile(theme.platform),
       showCursor: widget.showCursor,
       cursorStyle: CursorStyle(
