@@ -24,6 +24,8 @@ export 'src/widgets/editor.dart';
 export 'src/widgets/embeds.dart';
 export 'src/widgets/link.dart'
     show LinkActionPickerDelegate, LinkMenuAction, getLinkRange;
+// Support for show context menu
+export 'src/widgets/raw_editor.dart' show RawEditorState;
 export 'src/widgets/style_widgets/style_widgets.dart';
 export 'src/widgets/toolbar.dart';
 export 'src/widgets/toolbar/enum.dart';
