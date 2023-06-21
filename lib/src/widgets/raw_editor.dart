@@ -1427,7 +1427,7 @@ class RawEditorState extends EditorState
 
   /// Copy current selection to [Clipboard].
   @override
-  Future<void> copySelection(SelectionChangedCause cause) async {
+  void copySelection(SelectionChangedCause cause) {
     controller.copiedImageUrl = null;
     _pastePlainText = controller.getPlainText();
     _pasteStyle = controller.getAllIndividualSelectionStyles();
@@ -1440,13 +1440,16 @@ class RawEditorState extends EditorState
     /// OnsetData will alternate the clipboard data
     /// Support for custom clipboard data - images, mentions, etc
     ///
-    await widget.onSetData?.call() ??
-        Clipboard.setData(
-          ClipboardData(
-            text: selection.textInside(text),
-          ),
-        );
 
+    if (widget.onSetData != null) {
+      widget.onSetData!.call();
+    } else {
+      Clipboard.setData(
+        ClipboardData(
+          text: selection.textInside(text),
+        ),
+      );
+    }
     if (cause == SelectionChangedCause.toolbar) {
       bringIntoView(selection.extent);
 
@@ -1463,7 +1466,7 @@ class RawEditorState extends EditorState
 
   /// Cut current selection to [Clipboard].
   @override
-  Future<void> cutSelection(SelectionChangedCause cause) async {
+  void cutSelection(SelectionChangedCause cause) {
     controller.copiedImageUrl = null;
     _pastePlainText = controller.getPlainText();
     _pasteStyle = controller.getAllIndividualSelectionStyles();
@@ -1478,12 +1481,16 @@ class RawEditorState extends EditorState
 
     /// OnsetData will alternate the clipboard data
     /// Support for custom clipboard data - images, mentions, etc
-    await widget.onSetData?.call() ??
-        Clipboard.setData(
-          ClipboardData(
-            text: selection.textInside(text),
-          ),
-        );
+    /// Why not using await? Because we want it to be executed in background
+    if (widget.onSetData != null) {
+      widget.onSetData!.call();
+    } else {
+      Clipboard.setData(
+        ClipboardData(
+          text: selection.textInside(text),
+        ),
+      );
+    }
     _replaceText(ReplaceTextIntent(textEditingValue, '', selection, cause));
 
     if (cause == SelectionChangedCause.toolbar) {
