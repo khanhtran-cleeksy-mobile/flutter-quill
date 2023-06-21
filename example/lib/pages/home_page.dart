@@ -70,7 +70,7 @@ class _HomePageState extends State<HomePage> {
         final child = controller.document.queryChild(
           controller.selection.baseOffset,
         );
-        print(child.node?.style);
+        print(controller.document.toPlainText());
       }
       print(controller.getSelectionStyle().attributes);
     });
