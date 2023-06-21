@@ -94,9 +94,9 @@ class RawEditor extends StatefulWidget {
         super(key: key);
 
   /// This field supported for copy/cut actions. This will override the default
-  final Function()? onSetData;
+  final Future Function()? onSetData;
 
-  final Function()? onPaste;
+  final Future Function()? onPaste;
 
   /// Controls the document being edited.
   final QuillController controller;
@@ -1427,7 +1427,7 @@ class RawEditorState extends EditorState
 
   /// Copy current selection to [Clipboard].
   @override
-  void copySelection(SelectionChangedCause cause) {
+  Future<void> copySelection(SelectionChangedCause cause) async {
     controller.copiedImageUrl = null;
     _pastePlainText = controller.getPlainText();
     _pasteStyle = controller.getAllIndividualSelectionStyles();
@@ -1440,7 +1440,7 @@ class RawEditorState extends EditorState
     /// OnsetData will alternate the clipboard data
     /// Support for custom clipboard data - images, mentions, etc
     ///
-    widget.onSetData?.call() ??
+    await widget.onSetData?.call() ??
         Clipboard.setData(
           ClipboardData(
             text: selection.textInside(text),
@@ -1463,7 +1463,7 @@ class RawEditorState extends EditorState
 
   /// Cut current selection to [Clipboard].
   @override
-  void cutSelection(SelectionChangedCause cause) {
+  Future<void> cutSelection(SelectionChangedCause cause) async {
     controller.copiedImageUrl = null;
     _pastePlainText = controller.getPlainText();
     _pasteStyle = controller.getAllIndividualSelectionStyles();
@@ -1478,7 +1478,7 @@ class RawEditorState extends EditorState
 
     /// OnsetData will alternate the clipboard data
     /// Support for custom clipboard data - images, mentions, etc
-    widget.onSetData?.call() ??
+    await widget.onSetData?.call() ??
         Clipboard.setData(
           ClipboardData(
             text: selection.textInside(text),
@@ -1535,7 +1535,7 @@ class RawEditorState extends EditorState
     }
 
     if (widget.onPaste != null) {
-      widget.onPaste!();
+      await widget.onPaste!();
       _paste();
     } else {
       final text = await Clipboard.getData(Clipboard.kTextPlain);
