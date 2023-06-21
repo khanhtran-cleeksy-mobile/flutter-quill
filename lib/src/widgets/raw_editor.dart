@@ -1518,27 +1518,32 @@ class RawEditorState extends EditorState
     }
     // Snapshot the input before using `await`.
     // See https://github.com/flutter/flutter/issues/11427
-    if (widget.onPaste == null) {
+
+    void _paste() {
+      bringIntoView(selection.extent);
+
+      // Collapse the selection and hide the toolbar and handles.
+      userUpdateTextEditingValue(
+        TextEditingValue(
+          text: textEditingValue.text,
+          selection: TextSelection.collapsed(offset: selection.end),
+        ),
+        cause,
+      );
+
+      return;
+    }
+
+    if (widget.onPaste != null) {
+      widget.onPaste!();
+      _paste();
+    } else {
       final text = await Clipboard.getData(Clipboard.kTextPlain);
       if (text != null) {
         _replaceText(
             ReplaceTextIntent(textEditingValue, text.text!, selection, cause));
-
-        bringIntoView(selection.extent);
-
-        // Collapse the selection and hide the toolbar and handles.
-        userUpdateTextEditingValue(
-          TextEditingValue(
-            text: textEditingValue.text,
-            selection: TextSelection.collapsed(offset: selection.end),
-          ),
-          cause,
-        );
-
-        return;
+        _paste();
       }
-    } else {
-      widget.onPaste!.call();
     }
 
     if (widget.onImagePaste != null) {
