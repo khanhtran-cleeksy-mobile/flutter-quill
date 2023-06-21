@@ -84,12 +84,19 @@ class RawEditor extends StatefulWidget {
     this.onImagePaste,
     this.customLinkPrefixes = const <String>[],
     this.dialogTheme,
+    this.onSetData,
+    this.onPaste,
   })  : assert(maxHeight == null || maxHeight > 0, 'maxHeight cannot be null'),
         assert(minHeight == null || minHeight >= 0, 'minHeight cannot be null'),
         assert(maxHeight == null || minHeight == null || maxHeight >= minHeight,
             'maxHeight cannot be null'),
         showCursor = showCursor ?? true,
         super(key: key);
+
+  /// This field supported for copy/cut actions. This will override the default
+  final Function()? onSetData;
+
+  final Function()? onPaste;
 
   /// Controls the document being edited.
   final QuillController controller;
@@ -329,6 +336,11 @@ class RawEditorState extends EditorState
   bool get dirty => _dirty;
   bool _dirty = false;
 
+  TextSelection get selection => textEditingValue.selection;
+
+  bool get isSelectedText =>
+      selection.isValid && selection.end > selection.start;
+
   /// Returns the [ContextMenuButtonItem]s representing the buttons in this
   /// platform's default selection menu for [RawEditor].
   ///
@@ -336,11 +348,12 @@ class RawEditorState extends EditorState
   List<ContextMenuButtonItem> get contextMenuButtonItems {
     return EditableText.getEditableButtonItems(
       clipboardStatus: _clipboardStatus.value,
-      onCopy: copyEnabled
+      onCopy: copyEnabled && isSelectedText
           ? () => copySelection(SelectionChangedCause.toolbar)
           : null,
-      onCut:
-          cutEnabled ? () => cutSelection(SelectionChangedCause.toolbar) : null,
+      onCut: cutEnabled && isSelectedText
+          ? () => cutSelection(SelectionChangedCause.toolbar)
+          : null,
       onPaste:
           pasteEnabled ? () => pasteText(SelectionChangedCause.toolbar) : null,
       onSelectAll: selectAllEnabled
@@ -354,7 +367,6 @@ class RawEditorState extends EditorState
   /// Copied from [EditableTextState].
   TextSelectionToolbarAnchors get contextMenuAnchors {
     final glyphHeights = _getGlyphHeights();
-    final selection = textEditingValue.selection;
     final points = renderEditor.getEndpointsForSelection(selection);
     return TextSelectionToolbarAnchors.fromSelection(
       renderBox: renderEditor,
@@ -369,8 +381,6 @@ class RawEditorState extends EditorState
   ///
   /// Copied from [EditableTextState].
   _GlyphHeights _getGlyphHeights() {
-    final selection = textEditingValue.selection;
-
     // Only calculate handle rects if the text in the previous frame
     // is the same as the text in the current frame. This is done because
     // widget.renderObject contains the renderEditable from the previous frame.
@@ -1238,7 +1248,7 @@ class RawEditorState extends EditorState
 
   void _updateOrDisposeSelectionOverlayIfNeeded() {
     if (_selectionOverlay != null) {
-      if (!_hasFocus || textEditingValue.selection.isCollapsed) {
+      if (!_hasFocus || selection.isCollapsed) {
         _selectionOverlay!.dispose();
         _selectionOverlay = null;
       } else {
@@ -1422,22 +1432,29 @@ class RawEditorState extends EditorState
     _pastePlainText = controller.getPlainText();
     _pasteStyle = controller.getAllIndividualSelectionStyles();
 
-    final selection = textEditingValue.selection;
     final text = textEditingValue.text;
     if (selection.isCollapsed) {
       return;
     }
-    Clipboard.setData(ClipboardData(text: selection.textInside(text)));
+
+    /// OnsetData will alternate the clipboard data
+    /// Support for custom clipboard data - images, mentions, etc
+    ///
+    widget.onSetData?.call() ??
+        Clipboard.setData(
+          ClipboardData(
+            text: selection.textInside(text),
+          ),
+        );
 
     if (cause == SelectionChangedCause.toolbar) {
-      bringIntoView(textEditingValue.selection.extent);
+      bringIntoView(selection.extent);
 
       // Collapse the selection and hide the toolbar and handles.
       userUpdateTextEditingValue(
         TextEditingValue(
           text: textEditingValue.text,
-          selection:
-              TextSelection.collapsed(offset: textEditingValue.selection.end),
+          selection: TextSelection.collapsed(offset: selection.end),
         ),
         SelectionChangedCause.toolbar,
       );
@@ -1454,16 +1471,23 @@ class RawEditorState extends EditorState
     if (widget.readOnly) {
       return;
     }
-    final selection = textEditingValue.selection;
     final text = textEditingValue.text;
     if (selection.isCollapsed) {
       return;
     }
-    Clipboard.setData(ClipboardData(text: selection.textInside(text)));
+
+    /// OnsetData will alternate the clipboard data
+    /// Support for custom clipboard data - images, mentions, etc
+    widget.onSetData?.call() ??
+        Clipboard.setData(
+          ClipboardData(
+            text: selection.textInside(text),
+          ),
+        );
     _replaceText(ReplaceTextIntent(textEditingValue, '', selection, cause));
 
     if (cause == SelectionChangedCause.toolbar) {
-      bringIntoView(textEditingValue.selection.extent);
+      bringIntoView(selection.extent);
       hideToolbar();
     }
   }
@@ -1475,9 +1499,10 @@ class RawEditorState extends EditorState
       return;
     }
 
+    /// Currently, we are not able to paste image.
     if (controller.copiedImageUrl != null) {
-      final index = textEditingValue.selection.baseOffset;
-      final length = textEditingValue.selection.extentOffset - index;
+      final index = selection.baseOffset;
+      final length = selection.extentOffset - index;
       final copied = controller.copiedImageUrl!;
       controller.replaceText(index, length, BlockEmbed.image(copied.url), null);
       if (copied.styleString.isNotEmpty) {
@@ -1488,31 +1513,32 @@ class RawEditorState extends EditorState
       await Clipboard.setData(const ClipboardData(text: ''));
       return;
     }
-
-    final selection = textEditingValue.selection;
     if (!selection.isValid) {
       return;
     }
     // Snapshot the input before using `await`.
     // See https://github.com/flutter/flutter/issues/11427
-    final text = await Clipboard.getData(Clipboard.kTextPlain);
-    if (text != null) {
-      _replaceText(
-          ReplaceTextIntent(textEditingValue, text.text!, selection, cause));
+    if (widget.onPaste == null) {
+      final text = await Clipboard.getData(Clipboard.kTextPlain);
+      if (text != null) {
+        _replaceText(
+            ReplaceTextIntent(textEditingValue, text.text!, selection, cause));
 
-      bringIntoView(textEditingValue.selection.extent);
+        bringIntoView(selection.extent);
 
-      // Collapse the selection and hide the toolbar and handles.
-      userUpdateTextEditingValue(
-        TextEditingValue(
-          text: textEditingValue.text,
-          selection:
-              TextSelection.collapsed(offset: textEditingValue.selection.end),
-        ),
-        cause,
-      );
+        // Collapse the selection and hide the toolbar and handles.
+        userUpdateTextEditingValue(
+          TextEditingValue(
+            text: textEditingValue.text,
+            selection: TextSelection.collapsed(offset: selection.end),
+          ),
+          cause,
+        );
 
-      return;
+        return;
+      }
+    } else {
+      widget.onPaste!.call();
     }
 
     if (widget.onImagePaste != null) {
@@ -1528,7 +1554,7 @@ class RawEditorState extends EditorState
       }
 
       controller.replaceText(
-        textEditingValue.selection.end,
+        selection.end,
         0,
         BlockEmbed.image(imageUrl),
         null,
@@ -1548,7 +1574,7 @@ class RawEditorState extends EditorState
     );
 
     if (cause == SelectionChangedCause.toolbar) {
-      bringIntoView(textEditingValue.selection.extent);
+      bringIntoView(selection.extent);
     }
   }
 
@@ -2123,7 +2149,7 @@ class _DeleteTextAction<T extends DirectionalTextEditingIntent>
 
   @override
   Object? invoke(T intent, [BuildContext? context]) {
-    final selection = state.textEditingValue.selection;
+    final selection = state.selection;
     assert(selection.isValid);
 
     if (!selection.isCollapsed) {
@@ -2165,8 +2191,7 @@ class _DeleteTextAction<T extends DirectionalTextEditingIntent>
   }
 
   @override
-  bool get isActionEnabled =>
-      !state.widget.readOnly && state.textEditingValue.selection.isValid;
+  bool get isActionEnabled => !state.widget.readOnly && state.selection.isValid;
 }
 
 class _UpdateTextSelectionAction<T extends DirectionalCaretMovementIntent>
@@ -2180,7 +2205,7 @@ class _UpdateTextSelectionAction<T extends DirectionalCaretMovementIntent>
 
   @override
   Object? invoke(T intent, [BuildContext? context]) {
-    final selection = state.textEditingValue.selection;
+    final selection = state.selection;
     assert(selection.isValid);
 
     final collapseSelection =
@@ -2252,7 +2277,7 @@ class _UpdateTextSelectionAction<T extends DirectionalCaretMovementIntent>
   }
 
   @override
-  bool get isActionEnabled => state.textEditingValue.selection.isValid;
+  bool get isActionEnabled => state.selection.isValid;
 }
 
 class _ExtendSelectionOrCaretPositionAction extends ContextAction<
@@ -2268,7 +2293,7 @@ class _ExtendSelectionOrCaretPositionAction extends ContextAction<
   @override
   Object? invoke(ExtendSelectionToNextWordBoundaryOrCaretLocationIntent intent,
       [BuildContext? context]) {
-    final selection = state.textEditingValue.selection;
+    final selection = state.selection;
     assert(selection.isValid);
 
     final textBoundary = getTextBoundariesForIntent(intent);
@@ -2304,7 +2329,7 @@ class _ExtendSelectionOrCaretPositionAction extends ContextAction<
 
   @override
   bool get isActionEnabled =>
-      state.widget.selectionEnabled && state.textEditingValue.selection.isValid;
+      state.widget.selectionEnabled && state.selection.isValid;
 }
 
 class _UpdateTextSelectionToAdjacentLineAction<
@@ -2322,7 +2347,7 @@ class _UpdateTextSelectionToAdjacentLineAction<
       assert(_verticalMovementRun == null);
       return;
     }
-    _runSelection = state.textEditingValue.selection;
+    _runSelection = state.selection;
     final currentSelection = state.controller.selection;
     final continueCurrentRun = currentSelection.isValid &&
         currentSelection.isCollapsed &&
@@ -2336,7 +2361,7 @@ class _UpdateTextSelectionToAdjacentLineAction<
 
   @override
   void invoke(T intent, [BuildContext? context]) {
-    assert(state.textEditingValue.selection.isValid);
+    assert(state.selection.isValid);
 
     final collapseSelection =
         intent.collapseSelection || !state.widget.selectionEnabled;
@@ -2365,14 +2390,14 @@ class _UpdateTextSelectionToAdjacentLineAction<
       UpdateSelectionIntent(
           value, newSelection, SelectionChangedCause.keyboard),
     );
-    if (state.textEditingValue.selection == newSelection) {
+    if (state.selection == newSelection) {
       _verticalMovementRun = currentRun;
       _runSelection = newSelection;
     }
   }
 
   @override
-  bool get isActionEnabled => state.textEditingValue.selection.isValid;
+  bool get isActionEnabled => state.selection.isValid;
 }
 
 class _SelectAllAction extends ContextAction<SelectAllTextIntent> {
@@ -2413,8 +2438,7 @@ class _CopySelectionAction extends ContextAction<CopySelectionTextIntent> {
 
   @override
   bool get isActionEnabled =>
-      state.textEditingValue.selection.isValid &&
-      !state.textEditingValue.selection.isCollapsed;
+      state.selection.isValid && !state.selection.isCollapsed;
 }
 
 //Intent class for "escape" key to dismiss selection toolbar in Windows platform
@@ -2434,7 +2458,7 @@ class _HideSelectionToolbarAction
   }
 
   @override
-  bool get isActionEnabled => state.textEditingValue.selection.isValid;
+  bool get isActionEnabled => state.selection.isValid;
 }
 
 class _UndoKeyboardAction extends ContextAction<UndoTextIntent> {
