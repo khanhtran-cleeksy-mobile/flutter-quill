@@ -14,6 +14,8 @@ import '../models/structs/image_url.dart';
 import '../models/structs/offset_value.dart';
 import '../utils/delta.dart';
 
+export '../utils/delta.dart' show getPositionDelta;
+
 typedef ReplaceTextCallback = bool Function(int index, int len, Object? data);
 typedef DeleteCallback = void Function(int cursorPosition, bool forward);
 
