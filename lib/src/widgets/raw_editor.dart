@@ -94,7 +94,7 @@ class RawEditor extends StatefulWidget {
         super(key: key);
 
   /// This field supported for copy/cut actions. This will override the default
-  final Future Function()? onSetData;
+  final Future Function(bool isCut)? onSetData;
 
   final Future Function()? onPaste;
 
@@ -1442,7 +1442,7 @@ class RawEditorState extends EditorState
     ///
 
     if (widget.onSetData != null) {
-      widget.onSetData!.call();
+      widget.onSetData!.call(false);
     } else {
       Clipboard.setData(
         ClipboardData(
@@ -1483,7 +1483,7 @@ class RawEditorState extends EditorState
     /// Support for custom clipboard data - images, mentions, etc
     /// Why not using await? Because we want it to be executed in background
     if (widget.onSetData != null) {
-      widget.onSetData!.call();
+      widget.onSetData!.call(true);
     } else {
       Clipboard.setData(
         ClipboardData(
