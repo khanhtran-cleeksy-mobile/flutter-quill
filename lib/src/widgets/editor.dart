@@ -439,7 +439,7 @@ class QuillEditor extends StatefulWidget {
   final QuillDialogTheme? dialogTheme;
 
   /// This field supported for copy/cut actions. This will override the default
-  final Future Function(bool isCut)? onSetData;
+  final Future Function( )? onSetData;
 
   /// This field supported for paste action. This will override the default
   final Future Function()? onPaste;

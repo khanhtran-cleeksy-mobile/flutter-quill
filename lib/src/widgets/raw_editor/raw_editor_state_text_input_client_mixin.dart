@@ -78,8 +78,10 @@ mixin RawEditorStateTextInputClientMixin on EditorState
     if (hasConnection) {
       assert(mounted);
       final offset = composingRange.isValid ? composingRange.start : 0;
-      final composingRect =
-          renderEditor.getLocalRectForCaret(TextPosition(offset: offset));
+      final composingRect = renderEditor.getLocalRectForCaret(TextPosition(
+          offset: textEditingValue.selection.baseOffset < offset
+              ? textEditingValue.selection.baseOffset
+              : offset));
       _textInputConnection!.setComposingRect(composingRect);
       SchedulerBinding.instance
           .addPostFrameCallback((_) => _updateComposingRectIfNeeded());
