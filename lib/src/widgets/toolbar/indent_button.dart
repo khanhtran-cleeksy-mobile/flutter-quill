@@ -64,7 +64,9 @@ class _IndentButtonState extends State<IndentButton> {
   bool _getIsDisabled(Map<String, Attribute> attrs) {
     final attribute = attrs[Attribute.indent.key];
     if (attribute == null) {
-      if (attrs[Attribute.list.key] != null) {
+      if (attrs[Attribute.list.key] != null ||
+          attrs[Attribute.ol.key] != null
+          || attrs[Attribute.ul.key] != null) {
         return false;
       }
       return !widget.isIncrease;
