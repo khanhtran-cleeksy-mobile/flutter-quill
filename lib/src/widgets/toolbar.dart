@@ -64,6 +64,7 @@ class QuillToolbar extends StatelessWidget implements PreferredSizeWidget {
     this.sectionDividerColor,
     this.sectionDividerSpace,
     this.linkDialog,
+    this.iconColorDisabled,
     Key? key,
   }) : super(key: key);
 
@@ -154,9 +155,10 @@ class QuillToolbar extends StatelessWidget implements PreferredSizeWidget {
 
     /// The space occupied by toolbar divider
     double? sectionDividerSpace,
-    
+
     /// Custom link dialog
     Widget? Function(String? link, String? text)? linkDialog,
+    Color? iconColorDisabled,
     Key? key,
   }) {
     final isButtonGroupShown = [
@@ -532,6 +534,7 @@ class QuillToolbar extends StatelessWidget implements PreferredSizeWidget {
             isIncrease: true,
             iconTheme: iconTheme,
             afterButtonPressed: afterButtonPressed,
+            colorDisabled: iconColorDisabled,
           ),
         if (showIndent)
           IndentButton(
@@ -542,6 +545,7 @@ class QuillToolbar extends StatelessWidget implements PreferredSizeWidget {
             isIncrease: false,
             iconTheme: iconTheme,
             afterButtonPressed: afterButtonPressed,
+            colorDisabled: iconColorDisabled,
           ),
         if (showDividers && isButtonGroupShown[4] && isButtonGroupShown[5])
           QuillDivider(axis,
@@ -617,6 +621,7 @@ class QuillToolbar extends StatelessWidget implements PreferredSizeWidget {
 
   final Widget? Function(String? link, String? text)? linkDialog;
 
+  final Color? iconColorDisabled;
   @override
   Size get preferredSize => axis == Axis.horizontal
       ? Size.fromHeight(toolbarSize)

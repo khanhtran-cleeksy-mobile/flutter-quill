@@ -13,6 +13,7 @@ class QuillIconButton extends StatelessWidget {
     this.highlightElevation = 1,
     this.borderRadius = 2,
     this.tooltip,
+    this.isDisabled = false,
     Key? key,
   }) : super(key: key);
 
@@ -25,6 +26,7 @@ class QuillIconButton extends StatelessWidget {
   final double highlightElevation;
   final double borderRadius;
   final String? tooltip;
+  final bool isDisabled;
 
   @override
   Widget build(BuildContext context) {
@@ -40,10 +42,12 @@ class QuillIconButton extends StatelessWidget {
           elevation: 0,
           hoverElevation: hoverElevation,
           highlightElevation: hoverElevation,
-          onPressed: () {
-            onPressed?.call();
-            afterPressed?.call();
-          },
+          onPressed: isDisabled
+              ? null
+              : () {
+                  onPressed?.call();
+                  afterPressed?.call();
+                },
           child: icon,
         ),
       ),

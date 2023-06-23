@@ -14,8 +14,6 @@ import '../models/structs/image_url.dart';
 import '../models/structs/offset_value.dart';
 import '../utils/delta.dart';
 
-export '../utils/delta.dart' show getPositionDelta;
-
 typedef ReplaceTextCallback = bool Function(int index, int len, Object? data);
 typedef DeleteCallback = void Function(int cursorPosition, bool forward);
 
@@ -111,10 +109,14 @@ class QuillController extends ChangeNotifier {
   }
 
   void _indentSelectionFormat(bool isIncrease) {
-    final indent = getSelectionStyle().attributes[Attribute.indent.key];
+    final attributes = getSelectionStyle().attributes;
+    final indent = attributes[Attribute.indent.key];
+
     if (indent == null) {
       if (isIncrease) {
         formatSelection(Attribute.indentL1);
+      } else if (attributes.containsKey(Attribute.list.key)) {
+        formatSelection(Attribute.clone(Attribute.list, null));
       }
       return;
     }
