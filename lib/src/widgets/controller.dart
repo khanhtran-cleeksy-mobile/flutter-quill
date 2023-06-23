@@ -115,9 +115,10 @@ class QuillController extends ChangeNotifier {
     if (indent == null) {
       if (isIncrease) {
         formatSelection(Attribute.indentL1);
-      } else if (!isIncrease && attributes.containsKey(Attribute.list.key)) {
-        formatSelection(Attribute.clone(Attribute.list, null));
       }
+      //  else if (!isIncrease && attributes.containsKey(Attribute.list.key)) {
+      //   formatSelection(Attribute.clone(Attribute.list, null));
+      // }
       return;
     }
     if (indent.value == 1 && !isIncrease) {
