@@ -191,7 +191,8 @@ class QuillEditor extends StatefulWidget {
     this.enableUnfocusOnTapOutside = true,
     this.customLinkPrefixes = const <String>[],
     this.dialogTheme,
-    this.contextMenuBuilder,
+    this.onSetData,
+    this.onPaste,
     Key? key,
   }) : super(key: key);
 
@@ -437,8 +438,11 @@ class QuillEditor extends StatefulWidget {
   /// Configures the dialog theme.
   final QuillDialogTheme? dialogTheme;
 
-  /// Configures the context menu
-  final Widget Function(BuildContext, RawEditorState)? contextMenuBuilder;
+  /// This field supported for copy/cut actions. This will override the default
+  final Future Function( )? onSetData;
+
+  /// This field supported for paste action. This will override the default
+  final Future Function()? onPaste;
 
   @override
   QuillEditorState createState() => QuillEditorState();
@@ -506,9 +510,8 @@ class QuillEditorState extends State<QuillEditor>
       readOnly: widget.readOnly,
       placeholder: widget.placeholder,
       onLaunchUrl: widget.onLaunchUrl,
-      contextMenuBuilder: showSelectionToolbar
-          ? widget.contextMenuBuilder ?? RawEditor.defaultContextMenuBuilder
-          : null,
+      contextMenuBuilder:
+          showSelectionToolbar ? RawEditor.defaultContextMenuBuilder : null,
       showSelectionHandles: isMobile(theme.platform),
       showCursor: widget.showCursor,
       cursorStyle: CursorStyle(
@@ -543,6 +546,8 @@ class QuillEditorState extends State<QuillEditor>
       customLinkPrefixes: widget.customLinkPrefixes,
       enableUnfocusOnTapOutside: widget.enableUnfocusOnTapOutside,
       dialogTheme: widget.dialogTheme,
+      onSetData: widget.onSetData,
+      onPaste: widget.onPaste,
     );
 
     final editor = I18n(

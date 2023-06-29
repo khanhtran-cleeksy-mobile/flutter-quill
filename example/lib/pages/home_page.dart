@@ -70,9 +70,9 @@ class _HomePageState extends State<HomePage> {
         final child = controller.document.queryChild(
           controller.selection.baseOffset,
         );
-        print(child.node?.style);
+        // print(controller.document.toPlainText());
       }
-      print(controller.getSelectionStyle().attributes);
+      // print(controller.getSelectionStyle().attributes);
     });
   }
 
@@ -256,6 +256,7 @@ class _HomePageState extends State<HomePage> {
         ),
         showAlignmentButtons: true,
         afterButtonPressed: _focusNode.requestFocus,
+        iconColorDisabled: Colors.red,
       );
     }
     if (_isDesktop()) {
