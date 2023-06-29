@@ -347,10 +347,11 @@ QuillToolbar(locale: Locale('fr'), ...)
 QuillEditor(locale: Locale('fr'), ...)
 ```
 
-Currently, translations are available for these 27 locales:
+Currently, translations are available for these 28 locales:
 
 * `Locale('en')`
 * `Locale('ar')`
+* `Locale('bn')`
 * `Locale('cs')`
 * `Locale('de')`
 * `Locale('da')`
@@ -375,7 +376,7 @@ Currently, translations are available for these 27 locales:
 * `Locale('fa')`
 * `Locale('hi')`
 * `Locale('sr')`
-* `Locale('jp')`
+* `Locale('ja')`
 
 #### Contributing to translations
 
@@ -390,6 +391,22 @@ to HTML. This package has full support for all Quill operations - including imag
 tables, and mentions. Conversion can be performed in vanilla Dart (i.e., server-side or CLI) or in Flutter.
 It is a complete Dart part of the popular and mature [quill-delta-to-html](https://www.npmjs.com/package/quill-delta-to-html)
 Typescript/Javascript package.
+
+## Testing
+
+To aid in testing applications using the editor an extension to the flutter `WidgetTester` is provided which includes methods to simplify interacting with the editor in test cases.
+
+Import the test utilities in your test file:
+
+```dart
+import 'package:flutter_quill/flutter_quill_test.dart';
+```
+
+and then enter text using `quillEnterText`:
+
+```dart
+await tester.quillEnterText(find.byType(QuillEditor), 'test\n');
+```
 
 ## Sponsors
 

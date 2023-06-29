@@ -86,6 +86,7 @@ class RawEditor extends StatefulWidget {
     this.dialogTheme,
     this.onSetData,
     this.onPaste,
+    this.contentInsertionConfiguration,
   })  : assert(maxHeight == null || maxHeight > 0, 'maxHeight cannot be null'),
         assert(minHeight == null || minHeight >= 0, 'minHeight cannot be null'),
         assert(maxHeight == null || minHeight == null || maxHeight >= minHeight,
@@ -277,6 +278,12 @@ class RawEditor extends StatefulWidget {
   /// Configures the dialog theme.
   final QuillDialogTheme? dialogTheme;
 
+  /// Configuration of handler for media content inserted via the system input
+  /// method.
+  ///
+  /// See [https://api.flutter.dev/flutter/widgets/EditableText/contentInsertionConfiguration.html]
+  final ContentInsertionConfiguration? contentInsertionConfiguration;
+
   @override
   State<StatefulWidget> createState() => RawEditorState();
 }
@@ -340,6 +347,14 @@ class RawEditorState extends EditorState
 
   bool get isSelectedText =>
       selection.isValid && selection.end > selection.start;
+
+  @override
+  void insertContent(KeyboardInsertedContent content) {
+    assert(widget.contentInsertionConfiguration?.allowedMimeTypes
+            .contains(content.mimeType) ??
+        false);
+    widget.contentInsertionConfiguration?.onContentInserted.call(content);
+  }
 
   /// Returns the [ContextMenuButtonItem]s representing the buttons in this
   /// platform's default selection menu for [RawEditor].
@@ -969,7 +984,7 @@ class RawEditorState extends EditorState
         widget.selectionColor,
         widget.enableInteractiveSelection,
         _hasFocus,
-        MediaQuery.of(context).devicePixelRatio,
+        View.of(context).devicePixelRatio,
         _cursorCont);
     return editableTextLine;
   }
@@ -1773,7 +1788,7 @@ class RawEditorState extends EditorState
 }
 
 class _Editor extends MultiChildRenderObjectWidget {
-  _Editor({
+  const _Editor({
     required Key key,
     required List<Widget> children,
     required this.document,

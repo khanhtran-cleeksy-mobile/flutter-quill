@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:collection/collection.dart';
 
+import '../../../widgets/embeds.dart';
 import '../../quill_delta.dart';
 import '../../structs/offset_value.dart';
 import '../attribute.dart';
@@ -65,7 +66,11 @@ class Line extends Container<Leaf?> {
   }
 
   @override
-  String toPlainText() => '${super.toPlainText()}\n';
+  String toPlainText([
+    Iterable<EmbedBuilder>? embedBuilders,
+    EmbedBuilder? unknownEmbedBuilder,
+  ]) =>
+      '${super.toPlainText(embedBuilders, unknownEmbedBuilder)}\n';
 
   @override
   String toString() {
@@ -516,7 +521,7 @@ class Line extends Container<Leaf?> {
 
   int _getPlainText(int offset, int len, StringBuffer plainText) {
     var _len = len;
-    final data = queryChild(offset, true);
+    final data = queryChild(offset, false);
     var node = data.node as Leaf?;
 
     while (_len > 0) {
