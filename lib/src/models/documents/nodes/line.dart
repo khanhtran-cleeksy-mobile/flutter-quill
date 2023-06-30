@@ -516,7 +516,7 @@ class Line extends Container<Leaf?> {
 
   int _getPlainText(int offset, int len, StringBuffer plainText) {
     var _len = len;
-    final data = queryChild(offset, false);
+    final data = queryChild(offset, true);
     var node = data.node as Leaf?;
 
     while (_len > 0) {
