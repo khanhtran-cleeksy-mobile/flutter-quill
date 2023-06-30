@@ -159,7 +159,7 @@ class EditableTextBlock extends StatelessWidget {
           color,
           enableInteractiveSelection,
           hasFocus,
-          View.of(context).devicePixelRatio,
+          MediaQuery.of(context).devicePixelRatio,
           cursorCont);
       final nodeTextDirection = getDirectionOfNode(line);
       children.add(Directionality(
@@ -601,7 +601,7 @@ class RenderEditableTextBlock extends RenderEditableContainerBox
 }
 
 class _EditableBlock extends MultiChildRenderObjectWidget {
-  const _EditableBlock(
+  _EditableBlock(
       {required this.block,
       required this.textDirection,
       required this.padding,
