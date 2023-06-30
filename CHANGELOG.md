@@ -1,7 +1,10 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 # [7.2.10]
 - LINE._getPlainText queryChild inclusive=false.
 
+=======
+>>>>>>> parent of a981571d (Upgrade to 7.2.10)
 # [7.2.9]
 - Add toPlainText method to `EmbedBuilder`.
 
