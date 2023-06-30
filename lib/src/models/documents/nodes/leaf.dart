@@ -1,6 +1,5 @@
 import 'dart:math' as math;
 
-import '../../../widgets/embeds.dart';
 import '../../quill_delta.dart';
 import '../style.dart';
 import 'embeddable.dart';
@@ -225,11 +224,7 @@ class Text extends Leaf {
   String get value => _value as String;
 
   @override
-  String toPlainText([
-    Iterable<EmbedBuilder>? embedBuilders,
-    EmbedBuilder? unknownEmbedBuilder,
-  ]) =>
-      value;
+  String toPlainText() => value;
 }
 
 /// An embed node inside of a line in a Quill document.
@@ -262,26 +257,7 @@ class Embed extends Leaf {
   // Embed nodes are represented as unicode object replacement character in
   // plain text.
   @override
-  String toPlainText([
-    Iterable<EmbedBuilder>? embedBuilders,
-    EmbedBuilder? unknownEmbedBuilder,
-  ]) {
-    final builders = embedBuilders;
-
-    if (builders != null) {
-      for (final builder in builders) {
-        if (builder.key == value.type) {
-          return builder.toPlainText(this);
-        }
-      }
-    }
-
-    if (unknownEmbedBuilder != null) {
-      return unknownEmbedBuilder.toPlainText(this);
-    }
-
-    return Embed.kObjectReplacementCharacter;
-  }
+  String toPlainText() => kObjectReplacementCharacter;
 
   @override
   String toString() => '${super.toString()} ${value.type}';
