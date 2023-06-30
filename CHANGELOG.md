@@ -1,9 +1,12 @@
+<<<<<<< HEAD
 # [7.2.10]
 - LINE._getPlainText queryChild inclusive=false.
 
 # [7.2.9]
 - Add toPlainText method to `EmbedBuilder`.
 
+=======
+>>>>>>> parent of 333771d4 (Upgrade to 7.2.9)
 # [7.2.8]
 - Add custom button widget in toolbar.
 
