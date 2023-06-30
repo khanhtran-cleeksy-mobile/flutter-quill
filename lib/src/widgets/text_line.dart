@@ -147,11 +147,9 @@ class _TextLineState extends State<TextLine> {
       }
       final embedBuilder = widget.embedBuilder(embed);
       if (embedBuilder.expanded) {
-        // Creates correct node for custom embed
-        final lineStyle = _getLineStyle(widget.styles);
         return EmbedProxy(
           embedBuilder.build(context, widget.controller, embed, widget.readOnly,
-              false, lineStyle),
+              false, ),
         );
       }
     }
@@ -204,7 +202,6 @@ class _TextLineState extends State<TextLine> {
             child,
             widget.readOnly,
             true,
-            lineStyle,
           ),
         );
         final embed = embedBuilder.buildWidgetSpan(embedWidget);
