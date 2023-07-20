@@ -55,13 +55,17 @@ class _HomePageState extends State<HomePage> {
       final doc = Document.fromJson(jsonDecode(result));
       setState(() {
         _controller = QuillController(
-            document: doc, selection: const TextSelection.collapsed(offset: 0));
+            keepStyleOnNewLine: true,
+            document: doc,
+            selection: const TextSelection.collapsed(offset: 0));
       });
     } catch (error) {
       final doc = Document()..insert(0, 'Empty asset');
       setState(() {
         _controller = QuillController(
-            document: doc, selection: const TextSelection.collapsed(offset: 0));
+            keepStyleOnNewLine: true,
+            document: doc,
+            selection: const TextSelection.collapsed(offset: 0));
       });
     }
     _controller!.addListener(() {
