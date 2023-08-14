@@ -150,8 +150,12 @@ class _LinkStyleButtonState extends State<LinkStyleButton> {
 }
 
 class _LinkDialog extends StatefulWidget {
-  const _LinkDialog({this.dialogTheme, this.link, this.text, Key? key})
-      : super(key: key);
+  const _LinkDialog({
+    this.dialogTheme,
+    this.link,
+    this.text,
+    Key? key,
+  }) : super(key: key);
 
   final QuillDialogTheme? dialogTheme;
   final String? link;
