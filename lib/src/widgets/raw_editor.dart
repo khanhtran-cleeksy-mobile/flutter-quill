@@ -373,7 +373,7 @@ class RawEditorState extends EditorState
           pasteEnabled ? () => pasteText(SelectionChangedCause.toolbar) : null,
       onSelectAll: selectAllEnabled
           ? () => selectAll(SelectionChangedCause.toolbar)
-          : null,
+          : null, onLiveTextInput: () {  },
     );
   }
 
@@ -1785,6 +1785,10 @@ class RawEditorState extends EditorState
       }
     }
   }
+
+  @override
+  // TODO: implement liveTextInputEnabled
+  bool get liveTextInputEnabled => true;
 }
 
 class _Editor extends MultiChildRenderObjectWidget {
