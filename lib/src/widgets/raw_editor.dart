@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:developer';
 import 'dart:io';
 import 'dart:math' as math;
 import 'dart:ui' as ui hide TextStyle;
@@ -95,7 +96,7 @@ class RawEditor extends StatefulWidget {
         super(key: key);
 
   /// This field supported for copy/cut actions. This will override the default
-  final Future Function( )? onSetData;
+  final Future Function()? onSetData;
 
   final Future Function()? onPaste;
 
@@ -342,6 +343,7 @@ class RawEditorState extends EditorState
   @override
   bool get dirty => _dirty;
   bool _dirty = false;
+  bool _liveTextEnabled = false;
 
   TextSelection get selection => textEditingValue.selection;
 
@@ -373,8 +375,21 @@ class RawEditorState extends EditorState
           pasteEnabled ? () => pasteText(SelectionChangedCause.toolbar) : null,
       onSelectAll: selectAllEnabled
           ? () => selectAll(SelectionChangedCause.toolbar)
-          : null, onLiveTextInput: () {  },
+          : null,
+      onLiveTextInput: _liveTextEnabled
+          ? () => _startLiveTextInput(SelectionChangedCause.toolbar)
+          : null,
     );
+  }
+
+  void _startLiveTextInput(SelectionChangedCause cause) {
+    if (!liveTextInputEnabled) {
+      return;
+    }
+    LiveText.startLiveTextInput();
+    if (cause == SelectionChangedCause.toolbar) {
+      hideToolbar();
+    }
   }
 
   /// Returns the anchor points for the default context menu.
@@ -1082,6 +1097,21 @@ class RawEditorState extends EditorState
 
     // Focus
     widget.focusNode.addListener(_handleFocusChanged);
+
+    _setLiveTextEnabled();
+  }
+
+  Future<void> _setLiveTextEnabled() async {
+    try {
+      final enable = await LiveText.isLiveTextInputAvailable();
+      if (_liveTextEnabled != enable) {
+        setState(() {
+          _liveTextEnabled = enable;
+        });
+      }
+    } catch (e) {
+      log('_setLiveTextEnabled ${e.toString()}');
+    }
   }
 
   // KeyboardVisibilityController only checks for keyboards that
@@ -1788,7 +1818,8 @@ class RawEditorState extends EditorState
 
   @override
   // TODO: implement liveTextInputEnabled
-  bool get liveTextInputEnabled => true;
+  bool get liveTextInputEnabled =>
+      !widget.readOnly && textEditingValue.selection.isCollapsed;
 }
 
 class _Editor extends MultiChildRenderObjectWidget {
