@@ -44,7 +44,7 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     scrollController.addListener(() {
-      debugPrint(scrollController.offset.toString());
+      //debugPrint(scrollController.offset.toString());
     });
     super.initState();
     _loadFromAssets();
@@ -75,43 +75,46 @@ class _HomePageState extends State<HomePage> {
       return const Scaffold(body: Center(child: Text('Loading...')));
     }
 
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.grey.shade800,
-        elevation: 0,
-        centerTitle: false,
-        title: const Text(
-          'Flutter Quill',
-        ),
-        actions: [
-          IconButton(
-            onPressed: () => _insertTimeStamp(
-              _controller!,
-              DateTime.now().toString(),
-            ),
-            icon: const Icon(Icons.add_alarm_rounded),
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Scaffold(
+        appBar: AppBar(
+          backgroundColor: Colors.grey.shade800,
+          elevation: 0,
+          centerTitle: false,
+          title: const Text(
+            'Flutter Quill',
           ),
-          IconButton(
-            onPressed: () => showDialog(
-              context: context,
-              builder: (context) => AlertDialog(
-                content: Text(_controller!.document.toPlainText([
-                  ...FlutterQuillEmbeds.builders(),
-                  TimeStampEmbedBuilderWidget()
-                ])),
+          actions: [
+            IconButton(
+              onPressed: () => _insertTimeStamp(
+                _controller!,
+                DateTime.now().toString(),
               ),
+              icon: const Icon(Icons.add_alarm_rounded),
             ),
-            icon: const Icon(Icons.text_fields_rounded),
-          )
-        ],
+            IconButton(
+              onPressed: () => showDialog(
+                context: context,
+                builder: (context) => AlertDialog(
+                  content: Text(_controller!.document.toPlainText([
+                    ...FlutterQuillEmbeds.builders(),
+                    TimeStampEmbedBuilderWidget()
+                  ])),
+                ),
+              ),
+              icon: const Icon(Icons.text_fields_rounded),
+            )
+          ],
+        ),
+        drawer: Container(
+          constraints:
+              BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.7),
+          color: Colors.grey.shade800,
+          child: _buildMenuBar(context),
+        ),
+        body: _buildWelcomeEditor(context),
       ),
-      drawer: Container(
-        constraints:
-            BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.7),
-        color: Colors.grey.shade800,
-        child: _buildMenuBar(context),
-      ),
-      body: _buildWelcomeEditor(context),
     );
   }
 

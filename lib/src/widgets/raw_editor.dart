@@ -1330,6 +1330,7 @@ class RawEditorState extends EditorState
     _updateOrDisposeSelectionOverlayIfNeeded();
     if (_hasFocus) {
       WidgetsBinding.instance.addObserver(this);
+      _lastBottomViewInset = View.of(context).viewInsets.bottom;
       _showCaretOnScreen();
     } else {
       WidgetsBinding.instance.removeObserver(this);
@@ -1358,6 +1359,27 @@ class RawEditorState extends EditorState
   // This causes controller.selection to go to offset 0
   bool _disableScrollControllerAnimateOnce = false;
 
+  late double _lastBottomViewInset;
+
+  @override
+  void didChangeMetrics() {
+    if (!mounted) {
+      return;
+    }
+    final view = View.of(context);
+    if (_lastBottomViewInset != view.viewInsets.bottom) {
+      SchedulerBinding.instance.addPostFrameCallback((_) {
+        _selectionOverlay?.updateForScroll();
+      });
+      if (_lastBottomViewInset < view.viewInsets.bottom) {
+        // Because the metrics change signal from engine will come here every frame
+        // (on both iOS and Android). So we don't need to show caret with animation.
+        _showCaretOnScreen();
+      }
+    }
+    _lastBottomViewInset = view.viewInsets.bottom;
+  }
+
   void _showCaretOnScreen() {
     if (!widget.showCursor || _showCaretOnScreenScheduled) {
       return;
@@ -1365,10 +1387,10 @@ class RawEditorState extends EditorState
 
     _showCaretOnScreenScheduled = true;
     SchedulerBinding.instance.addPostFrameCallback((_) {
-      if (widget.scrollable || _scrollController.hasClients) {
+      if (widget.scrollable) {
         _showCaretOnScreenScheduled = false;
         final renderEditable =
-            _editorKey.currentContext!.findRenderObject() as RenderEditor?;
+            _editorKey.currentContext?.findRenderObject() as RenderEditor?;
         if (renderEditable == null ||
             !renderEditable.selection.isValid ||
             !_scrollController.hasClients) {
