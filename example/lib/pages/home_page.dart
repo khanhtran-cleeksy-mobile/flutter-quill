@@ -33,6 +33,7 @@ class _HomePageState extends State<HomePage> {
   final FocusNode _focusNode = FocusNode();
   Timer? _selectAllTimer;
   _SelectionType _selectionType = _SelectionType.none;
+  final scrollController = ScrollController();
 
   @override
   void dispose() {
@@ -42,6 +43,9 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void initState() {
+    scrollController.addListener(() {
+      print(scrollController.offset);
+    });
     super.initState();
     _loadFromAssets();
   }
@@ -287,7 +291,17 @@ class _HomePageState extends State<HomePage> {
             child: Container(
               color: Colors.white,
               padding: const EdgeInsets.only(left: 16, right: 16),
-              child: quillEditor,
+              child: SingleChildScrollView(
+                controller: scrollController,
+                child: Column(
+                  children: [
+                    const SizedBox(
+                      height: 100,
+                    ),
+                    quillEditor,
+                  ],
+                ),
+              ),
             ),
           ),
           kIsWeb

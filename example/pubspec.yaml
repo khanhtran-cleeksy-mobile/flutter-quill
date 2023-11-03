@@ -35,6 +35,7 @@ dependencies:
     path: ../
   flutter_quill_extensions:
     path: ../flutter_quill_extensions
+  flutter_inappwebview: ^5.8.0
 
 dependency_overrides:
   flutter_quill:

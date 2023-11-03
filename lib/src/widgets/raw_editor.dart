@@ -1367,35 +1367,114 @@ class RawEditorState extends EditorState
     SchedulerBinding.instance.addPostFrameCallback((_) {
       if (widget.scrollable || _scrollController.hasClients) {
         _showCaretOnScreenScheduled = false;
+        final renderEditable =
+            _editorKey.currentContext!.findRenderObject() as RenderEditor?;
+        if (renderEditable == null ||
+            !renderEditable.selection.isValid ||
+            !_scrollController.hasClients) {
+          return;
+        }
+        final lineHeight = renderEditable.preferredLineHeight(
+          TextPosition(
+            offset: renderEditable.selection.baseOffset,
+          ),
+        );
 
+        // Enlarge the target rect by scrollPadding to ensure that caret is not
+        // positioned directly at the edge after scrolling.
+        var bottomSpacing = const EdgeInsets.all(20).bottom;
+        if (_selectionOverlay?.selectionCtrls != null) {
+          final handleHeight = _selectionOverlay!.selectionCtrls
+              .getHandleSize(lineHeight)
+              .height;
+          final double interactiveHandleHeight = math.max(
+            handleHeight,
+            kMinInteractiveDimension,
+          );
+          final anchor = _selectionOverlay!.selectionCtrls.getHandleAnchor(
+            TextSelectionHandleType.collapsed,
+            lineHeight,
+          );
+          final handleCenter = handleHeight / 2 - anchor.dy;
+          bottomSpacing = math.max(
+            handleCenter + interactiveHandleHeight / 2,
+            bottomSpacing,
+          );
+        }
+
+        final caretPadding =
+            const EdgeInsets.all(20).copyWith(bottom: bottomSpacing);
+
+        final caretRect = renderEditable
+            .getLocalRectForCaret(renderEditable.selection.extent);
+        final targetOffset = _getOffsetToRevealCaret(caretRect);
+
+        final Rect rectToReveal;
+        rectToReveal = targetOffset.rect;
         if (!mounted) {
           return;
         }
 
-        final viewport = RenderAbstractViewport.of(renderEditor);
-        final editorOffset =
-            renderEditor.localToGlobal(const Offset(0, 0), ancestor: viewport);
-        final offsetInViewport = _scrollController.offset + editorOffset.dy;
-
-        final offset = renderEditor.getOffsetToRevealCursor(
-          _scrollController.position.viewportDimension,
-          _scrollController.offset,
-          offsetInViewport,
-        );
-
-        if (offset != null) {
-          if (_disableScrollControllerAnimateOnce) {
-            _disableScrollControllerAnimateOnce = false;
-            return;
-          }
-          _scrollController.animateTo(
-            math.min(offset, _scrollController.position.maxScrollExtent),
-            duration: const Duration(milliseconds: 100),
-            curve: Curves.fastOutSlowIn,
-          );
+        if (_disableScrollControllerAnimateOnce) {
+          _disableScrollControllerAnimateOnce = false;
+          return;
         }
+        _scrollController.animateTo(
+          targetOffset.offset,
+          duration: const Duration(milliseconds: 100),
+          curve: Curves.fastOutSlowIn,
+        );
+        renderEditable.showOnScreen(
+          rect: caretPadding.inflateRect(rectToReveal),
+          duration: const Duration(milliseconds: 100),
+          curve: Curves.fastOutSlowIn,
+        );
       }
     });
+  }
+
+  RevealedOffset _getOffsetToRevealCaret(Rect rect) {
+    if (!_scrollController.position.allowImplicitScrolling) {
+      return RevealedOffset(offset: _scrollController.offset, rect: rect);
+    }
+
+    final editableSize = renderEditor.size;
+    final double additionalOffset;
+    final Offset unitOffset;
+
+    // The caret is vertically centered within the line. Expand the caret's
+    // height so that it spans the line because we're going to ensure that the
+    // entire expanded caret is scrolled into view.
+    final expandedRect = Rect.fromCenter(
+      center: rect.center,
+      width: rect.width,
+      height: math.max(
+        rect.height,
+        renderEditor.preferredLineHeight(
+          TextPosition(
+            offset: renderEditor.selection.baseOffset,
+          ),
+        ),
+      ),
+    );
+
+    additionalOffset = expandedRect.height >= editableSize.height
+        ? editableSize.height / 2 - expandedRect.center.dy
+        : clampDouble(
+            0.0, expandedRect.bottom - editableSize.height, expandedRect.top);
+    unitOffset = const Offset(0, 1);
+
+    // No overscrolling when encountering tall fonts/scripts that extend past
+    // the ascent.
+    final targetOffset = clampDouble(
+      additionalOffset + _scrollController.offset,
+      _scrollController.position.minScrollExtent,
+      _scrollController.position.maxScrollExtent,
+    );
+
+    final offsetDelta = _scrollController.offset - targetOffset;
+    return RevealedOffset(
+        rect: rect.shift(unitOffset * offsetDelta), offset: targetOffset);
   }
 
   /// The renderer for this widget's editor descendant.
