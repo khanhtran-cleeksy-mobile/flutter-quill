@@ -1461,7 +1461,7 @@ class RawEditorState extends EditorState
     additionalOffset = expandedRect.height >= editableSize.height
         ? editableSize.height / 2 - expandedRect.center.dy
         : clampDouble(
-            0.0, expandedRect.bottom - editableSize.height, expandedRect.top);
+            0, expandedRect.bottom - editableSize.height, expandedRect.top);
     unitOffset = const Offset(0, 1);
 
     // No overscrolling when encountering tall fonts/scripts that extend past

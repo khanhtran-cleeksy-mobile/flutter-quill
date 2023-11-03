@@ -34,6 +34,7 @@ class _VideoAppState extends State<VideoApp> {
     super.initState();
 
     _controller = widget.videoUrl.startsWith('http')
+        // ignore: deprecated_member_use
         ? VideoPlayerController.network(widget.videoUrl)
         : VideoPlayerController.file(File(widget.videoUrl))
       ..initialize().then((_) {

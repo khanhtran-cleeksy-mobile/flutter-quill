@@ -44,7 +44,7 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     scrollController.addListener(() {
-      print(scrollController.offset);
+      debugPrint(scrollController.offset.toString());
     });
     super.initState();
     _loadFromAssets();

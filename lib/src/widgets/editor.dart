@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+
 // ignore: unnecessary_import
 import 'dart:typed_data';
 
@@ -148,7 +149,6 @@ abstract class RenderAbstractEditor implements TextLayoutMetrics {
 
 class QuillEditor extends StatefulWidget {
   const QuillEditor({
-    this.editorKey,
     required this.controller,
     required this.focusNode,
     required this.scrollController,
@@ -157,6 +157,7 @@ class QuillEditor extends StatefulWidget {
     required this.autoFocus,
     required this.readOnly,
     required this.expands,
+    this.editorKey,
     this.showCursor,
     this.paintCursorAboveText,
     this.placeholder,
@@ -199,8 +200,8 @@ class QuillEditor extends StatefulWidget {
 
   factory QuillEditor.basic({
     required QuillController controller,
-    GlobalKey<EditorState>? editorKey,
     required bool readOnly,
+    GlobalKey<EditorState>? editorKey,
     Brightness? keyboardAppearance,
     Iterable<EmbedBuilder>? embedBuilders,
 
@@ -377,6 +378,7 @@ class QuillEditor extends StatefulWidget {
   // Returns whether gesture is handled
   final bool Function(LongPressMoveUpdateDetails details,
       TextPosition Function(Offset offset))? onSingleLongTapMoveUpdate;
+
   // Returns whether gesture is handled
   final bool Function(
           LongPressEndDetails details, TextPosition Function(Offset offset))?
@@ -440,7 +442,7 @@ class QuillEditor extends StatefulWidget {
   final QuillDialogTheme? dialogTheme;
 
   /// This field supported for copy/cut actions. This will override the default
-  final Future Function( )? onSetData;
+  final Future Function()? onSetData;
 
   /// This field supported for paste action. This will override the default
   final Future Function()? onPaste;
@@ -1011,6 +1013,7 @@ class RenderEditor extends RenderEditableContainerBox
   }
 
   double? _maxContentWidth;
+
   set maxContentWidth(double? value) {
     if (_maxContentWidth == value) return;
     _maxContentWidth = value;
