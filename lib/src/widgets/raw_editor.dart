@@ -1404,7 +1404,7 @@ class RawEditorState extends EditorState
 
         // Enlarge the target rect by scrollPadding to ensure that caret is not
         // positioned directly at the edge after scrolling.
-        var bottomSpacing = const EdgeInsets.all(20).bottom;
+        var bottomSpacing = const EdgeInsets.all(10).bottom;
         if (_selectionOverlay?.selectionCtrls != null) {
           final handleHeight = _selectionOverlay!.selectionCtrls
               .getHandleSize(lineHeight)
@@ -1425,7 +1425,7 @@ class RawEditorState extends EditorState
         }
 
         final caretPadding =
-            const EdgeInsets.all(20).copyWith(bottom: bottomSpacing);
+            const EdgeInsets.all(10).copyWith(bottom: bottomSpacing);
 
         final caretRect = renderEditable
             .getLocalRectForCaret(renderEditable.selection.extent);
