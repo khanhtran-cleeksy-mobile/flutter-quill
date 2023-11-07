@@ -1529,7 +1529,9 @@ class RawEditorState extends EditorState
         _showCaretOnScreen();
       }
     } else {
-      widget.focusNode.requestFocus();
+      WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+        widget.focusNode.requestFocus();
+      });
     }
   }
 
