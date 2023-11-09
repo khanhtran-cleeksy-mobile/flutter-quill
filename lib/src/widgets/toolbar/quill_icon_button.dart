@@ -42,12 +42,12 @@ class QuillIconButton extends StatelessWidget {
           elevation: 0,
           hoverElevation: hoverElevation,
           highlightElevation: hoverElevation,
-          onPressed: isDisabled
-              ? null
-              : () {
-                  onPressed?.call();
-                  afterPressed?.call();
-                },
+          onPressed: () {
+            if (isDisabled) return;
+            //
+            onPressed?.call();
+            afterPressed?.call();
+          },
           child: icon,
         ),
       ),
