@@ -379,6 +379,9 @@ class RawEditorState extends EditorState
       onLiveTextInput: _liveTextEnabled
           ? () => _startLiveTextInput(SelectionChangedCause.toolbar)
           : null,
+      onLookUp: () {},
+      onShare: () {},
+      onSearchWeb: () {},
     );
   }
 
@@ -1923,6 +1926,18 @@ class RawEditorState extends EditorState
   // TODO: implement liveTextInputEnabled
   bool get liveTextInputEnabled =>
       !widget.readOnly && textEditingValue.selection.isCollapsed;
+
+  @override
+  // TODO: implement lookUpEnabled
+  bool get lookUpEnabled => throw UnimplementedError();
+
+  @override
+  // TODO: implement searchWebEnabled
+  bool get searchWebEnabled => throw UnimplementedError();
+
+  @override
+  // TODO: implement shareEnabled
+  bool get shareEnabled => throw UnimplementedError();
 }
 
 class _Editor extends MultiChildRenderObjectWidget {
