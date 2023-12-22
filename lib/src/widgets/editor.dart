@@ -195,6 +195,7 @@ class QuillEditor extends StatefulWidget {
     this.contentInsertionConfiguration,
     this.onSetData,
     this.onPaste,
+    this.scrollPadding = const EdgeInsets.all(10),
     Key? key,
   }) : super(key: key);
 
@@ -453,6 +454,8 @@ class QuillEditor extends StatefulWidget {
   /// See [https://api.flutter.dev/flutter/widgets/EditableText/contentInsertionConfiguration.html]
   final ContentInsertionConfiguration? contentInsertionConfiguration;
 
+  final EdgeInsets scrollPadding;
+
   @override
   QuillEditorState createState() => QuillEditorState();
 }
@@ -558,6 +561,7 @@ class QuillEditorState extends State<QuillEditor>
       contentInsertionConfiguration: widget.contentInsertionConfiguration,
       onSetData: widget.onSetData,
       onPaste: widget.onPaste,
+      scrollPadding: widget.scrollPadding,
     );
 
     final editor = I18n(

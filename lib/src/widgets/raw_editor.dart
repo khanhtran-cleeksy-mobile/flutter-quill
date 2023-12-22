@@ -56,7 +56,7 @@ class RawEditor extends StatefulWidget {
     required this.selectionColor,
     required this.selectionCtrls,
     required this.embedBuilder,
-    Key? key,
+    required this.scrollPadding, Key? key,
     this.scrollable = true,
     this.padding = EdgeInsets.zero,
     this.readOnly = false,
@@ -112,6 +112,7 @@ class RawEditor extends StatefulWidget {
 
   /// Additional space around the editor contents.
   final EdgeInsetsGeometry padding;
+  final EdgeInsets scrollPadding;
 
   /// Whether the text can be changed.
   ///
@@ -1407,7 +1408,7 @@ class RawEditorState extends EditorState
 
         // Enlarge the target rect by scrollPadding to ensure that caret is not
         // positioned directly at the edge after scrolling.
-        var bottomSpacing = const EdgeInsets.all(10).bottom;
+        var bottomSpacing = widget.scrollPadding.bottom;
         if (_selectionOverlay?.selectionCtrls != null) {
           final handleHeight = _selectionOverlay!.selectionCtrls
               .getHandleSize(lineHeight)
@@ -1428,7 +1429,7 @@ class RawEditorState extends EditorState
         }
 
         final caretPadding =
-            const EdgeInsets.all(10).copyWith(bottom: bottomSpacing);
+            widget.scrollPadding.copyWith(bottom: bottomSpacing);
 
         final caretRect = renderEditable
             .getLocalRectForCaret(renderEditable.selection.extent);
