@@ -197,6 +197,8 @@ class QuillEditor extends StatefulWidget {
     this.onPaste,
     this.scrollPadding = const EdgeInsets.all(10),
     Key? key,
+    this.keyboardType,
+    this.textInputAction,
   }) : super(key: key);
 
   factory QuillEditor.basic({
@@ -456,6 +458,10 @@ class QuillEditor extends StatefulWidget {
 
   final EdgeInsets scrollPadding;
 
+  final TextInputType? keyboardType;
+
+  final TextInputAction? textInputAction;
+
   @override
   QuillEditorState createState() => QuillEditorState();
 }
@@ -562,6 +568,8 @@ class QuillEditorState extends State<QuillEditor>
       onSetData: widget.onSetData,
       onPaste: widget.onPaste,
       scrollPadding: widget.scrollPadding,
+      keyboardType: widget.keyboardType,
+      textInputAction: widget.textInputAction,
     );
 
     final editor = I18n(

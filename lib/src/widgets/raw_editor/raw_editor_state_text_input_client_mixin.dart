@@ -53,9 +53,9 @@ mixin RawEditorStateTextInputClientMixin on EditorState
       _textInputConnection = TextInput.attach(
         this,
         TextInputConfiguration(
-          inputType: TextInputType.multiline,
+          inputType: widget.keyboardType ?? TextInputType.multiline,
           readOnly: widget.readOnly,
-          inputAction: TextInputAction.newline,
+          inputAction: widget.textInputAction ?? TextInputAction.newline,
           enableSuggestions: !widget.readOnly,
           keyboardAppearance: widget.keyboardAppearance,
           textCapitalization: widget.textCapitalization,

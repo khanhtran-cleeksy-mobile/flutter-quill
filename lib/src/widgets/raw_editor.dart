@@ -56,7 +56,8 @@ class RawEditor extends StatefulWidget {
     required this.selectionColor,
     required this.selectionCtrls,
     required this.embedBuilder,
-    required this.scrollPadding, Key? key,
+    required this.scrollPadding,
+    Key? key,
     this.scrollable = true,
     this.padding = EdgeInsets.zero,
     this.readOnly = false,
@@ -88,6 +89,8 @@ class RawEditor extends StatefulWidget {
     this.onSetData,
     this.onPaste,
     this.contentInsertionConfiguration,
+    this.keyboardType,
+    this.textInputAction,
   })  : assert(maxHeight == null || maxHeight > 0, 'maxHeight cannot be null'),
         assert(minHeight == null || minHeight >= 0, 'minHeight cannot be null'),
         assert(maxHeight == null || minHeight == null || maxHeight >= minHeight,
@@ -136,6 +139,10 @@ class RawEditor extends StatefulWidget {
   ///
   /// If not provided, no context menu will be shown.
   final QuillEditorContextMenuBuilder? contextMenuBuilder;
+
+  final TextInputType? keyboardType;
+
+  final TextInputAction? textInputAction;
 
   static Widget defaultContextMenuBuilder(
     BuildContext context,
