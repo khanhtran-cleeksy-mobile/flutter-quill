@@ -198,7 +198,28 @@ mixin RawEditorStateTextInputClientMixin on EditorState
 
   @override
   void performAction(TextInputAction action) {
-    // no-op
+    switch (action) {
+      case TextInputAction.none:
+      case TextInputAction.unspecified:
+      case TextInputAction.done:
+      case TextInputAction.go:
+      case TextInputAction.search:
+      case TextInputAction.send:
+      case TextInputAction.continueAction:
+      case TextInputAction.join:
+      case TextInputAction.route:
+      case TextInputAction.emergencyCall:
+        widget.focusNode.unfocus();
+        return;
+      case TextInputAction.next:
+        widget.focusNode.nextFocus();
+        return;
+      case TextInputAction.previous:
+        widget.focusNode.previousFocus();
+        return;
+      default:
+        return;
+    }
   }
 
   @override
