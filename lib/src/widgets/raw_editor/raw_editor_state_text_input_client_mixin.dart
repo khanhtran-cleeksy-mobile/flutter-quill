@@ -210,6 +210,8 @@ mixin RawEditorStateTextInputClientMixin on EditorState
       case TextInputAction.route:
       case TextInputAction.emergencyCall:
         widget.focusNode.unfocus();
+        return;
+      case TextInputAction.next:
         if (widget.onEditingComplete != null) {
           try {
             widget.onEditingComplete!();
@@ -218,14 +220,11 @@ mixin RawEditorStateTextInputClientMixin on EditorState
               exception: exception,
               stack: stack,
               library: 'widgets',
-              context:
-              ErrorDescription('while calling onEditingComplete for $action'),
+              context: ErrorDescription(
+                  'while calling onEditingComplete for $action'),
             ));
           }
         }
-        return;
-      case TextInputAction.next:
-        widget.focusNode.nextFocus();
         return;
       case TextInputAction.previous:
         widget.focusNode.previousFocus();
