@@ -199,6 +199,7 @@ class QuillEditor extends StatefulWidget {
     Key? key,
     this.keyboardType,
     this.textInputAction,
+    this.onEditingComplete,
   }) : super(key: key);
 
   factory QuillEditor.basic({
@@ -462,6 +463,8 @@ class QuillEditor extends StatefulWidget {
 
   final TextInputAction? textInputAction;
 
+  final VoidCallback? onEditingComplete;
+
   @override
   QuillEditorState createState() => QuillEditorState();
 }
@@ -570,6 +573,7 @@ class QuillEditorState extends State<QuillEditor>
       scrollPadding: widget.scrollPadding,
       keyboardType: widget.keyboardType,
       textInputAction: widget.textInputAction,
+      onEditingComplete: widget.onEditingComplete,
     );
 
     final editor = I18n(

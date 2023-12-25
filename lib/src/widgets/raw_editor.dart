@@ -91,6 +91,7 @@ class RawEditor extends StatefulWidget {
     this.contentInsertionConfiguration,
     this.keyboardType,
     this.textInputAction,
+    this.onEditingComplete,
   })  : assert(maxHeight == null || maxHeight > 0, 'maxHeight cannot be null'),
         assert(minHeight == null || minHeight >= 0, 'minHeight cannot be null'),
         assert(maxHeight == null || minHeight == null || maxHeight >= minHeight,
@@ -143,6 +144,8 @@ class RawEditor extends StatefulWidget {
   final TextInputType? keyboardType;
 
   final TextInputAction? textInputAction;
+
+  final VoidCallback? onEditingComplete;
 
   static Widget defaultContextMenuBuilder(
     BuildContext context,

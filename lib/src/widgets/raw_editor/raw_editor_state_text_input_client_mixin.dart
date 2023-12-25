@@ -210,6 +210,19 @@ mixin RawEditorStateTextInputClientMixin on EditorState
       case TextInputAction.route:
       case TextInputAction.emergencyCall:
         widget.focusNode.unfocus();
+        if (widget.onEditingComplete != null) {
+          try {
+            widget.onEditingComplete!();
+          } catch (exception, stack) {
+            FlutterError.reportError(FlutterErrorDetails(
+              exception: exception,
+              stack: stack,
+              library: 'widgets',
+              context:
+              ErrorDescription('while calling onEditingComplete for $action'),
+            ));
+          }
+        }
         return;
       case TextInputAction.next:
         widget.focusNode.nextFocus();
