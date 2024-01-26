@@ -387,9 +387,15 @@ class RawEditorState extends EditorState
       onLiveTextInput: _liveTextEnabled
           ? () => _startLiveTextInput(SelectionChangedCause.toolbar)
           : null,
-      onLookUp: () {},
-      onShare: () {},
-      onSearchWeb: () {},
+      onLookUp: lookUpEnabled
+          ? () => lookUpSelection(SelectionChangedCause.toolbar)
+          : null,
+      onShare: shareEnabled
+          ? () => shareSelection(SelectionChangedCause.toolbar)
+          : null,
+      onSearchWeb: searchWebEnabled
+          ? () => searchWebForSelection(SelectionChangedCause.toolbar)
+          : null,
     );
   }
 
@@ -1733,6 +1739,57 @@ class RawEditorState extends EditorState
     }
   }
 
+  /// Look up the current selection,
+  /// as in the "Look Up" edit menu button on iOS.
+  ///
+  /// Currently this is only implemented for iOS.
+  ///
+  /// Throws an error if the selection is empty or collapsed.
+  Future<void> lookUpSelection(SelectionChangedCause cause) async {
+    final text = textEditingValue.selection.textInside(textEditingValue.text);
+    if (text.isEmpty) {
+      return;
+    }
+    await SystemChannels.platform.invokeMethod(
+      'LookUp.invoke',
+      text,
+    );
+  }
+
+  /// Launch a web search on the current selection,
+  /// as in the "Search Web" edit menu button on iOS.
+  ///
+  /// Currently this is only implemented for iOS.
+  ///
+  /// When 'obscureText' is true or the selection is empty,
+  /// this function will not do anything
+  Future<void> searchWebForSelection(SelectionChangedCause cause) async {
+    final text = textEditingValue.selection.textInside(textEditingValue.text);
+    if (text.isNotEmpty) {
+      await SystemChannels.platform.invokeMethod(
+        'SearchWeb.invoke',
+        text,
+      );
+    }
+  }
+
+  /// Launch the share interface for the current selection,
+  /// as in the "Share" edit menu button on iOS.
+  ///
+  /// Currently this is only implemented for iOS.
+  ///
+  /// When 'obscureText' is true or the selection is empty,
+  /// this function will not do anything
+  Future<void> shareSelection(SelectionChangedCause cause) async {
+    final text = textEditingValue.selection.textInside(textEditingValue.text);
+    if (text.isNotEmpty) {
+      await SystemChannels.platform.invokeMethod(
+        'Share.invoke',
+        text,
+      );
+    }
+  }
+
   /// Select the entire text value.
   @override
   void selectAll(SelectionChangedCause cause) {
@@ -1931,21 +1988,40 @@ class RawEditorState extends EditorState
   }
 
   @override
-  // TODO: implement liveTextInputEnabled
   bool get liveTextInputEnabled =>
       !widget.readOnly && textEditingValue.selection.isCollapsed;
 
   @override
-  // TODO: implement lookUpEnabled
-  bool get lookUpEnabled => throw UnimplementedError();
+  bool get lookUpEnabled {
+    if (defaultTargetPlatform != TargetPlatform.iOS) {
+      return false;
+    }
+    return !textEditingValue.selection.isCollapsed &&
+        textEditingValue.selection.textInside(textEditingValue.text).trim() !=
+            '';
+  }
 
   @override
-  // TODO: implement searchWebEnabled
-  bool get searchWebEnabled => throw UnimplementedError();
+  bool get searchWebEnabled {
+    if (defaultTargetPlatform != TargetPlatform.iOS) {
+      return false;
+    }
+
+    return !textEditingValue.selection.isCollapsed &&
+        textEditingValue.selection.textInside(textEditingValue.text).trim() !=
+            '';
+  }
 
   @override
-  // TODO: implement shareEnabled
-  bool get shareEnabled => throw UnimplementedError();
+  bool get shareEnabled {
+    if (defaultTargetPlatform != TargetPlatform.iOS) {
+      return false;
+    }
+
+    return !textEditingValue.selection.isCollapsed &&
+        textEditingValue.selection.textInside(textEditingValue.text).trim() !=
+            '';
+  }
 }
 
 class _Editor extends MultiChildRenderObjectWidget {
