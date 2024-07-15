@@ -938,8 +938,6 @@ class RenderEditor extends RenderEditableContainerBox
     // _applyFloatingPointHack. Ideally, the rounding mismatch will be fixed and
     // this can be changed to be a strict check instead of an approximation.
     const visibleRegionSlop = 0.5;
-    print(visibleRegion.inflate(visibleRegionSlop));
-    print(startOffset + effectiveOffset);
     if (preferredLineHeight(startPosition) > height) {
       _selectionStartInViewport.value = false;
     } else {

@@ -18,14 +18,12 @@ import '../models/documents/attribute.dart';
 import '../models/documents/document.dart';
 import '../models/documents/nodes/block.dart';
 import '../models/documents/nodes/embeddable.dart';
-import '../models/documents/nodes/leaf.dart' as leaf;
 import '../models/documents/nodes/line.dart';
 import '../models/documents/nodes/node.dart';
 import '../models/documents/style.dart';
 import '../models/structs/offset_value.dart';
 import '../models/structs/vertical_spacing.dart';
 import '../models/themes/quill_dialog_theme.dart';
-import '../utils/cast.dart';
 import '../utils/delta.dart';
 import '../utils/embeds.dart';
 import '../utils/platform.dart';
@@ -308,6 +306,7 @@ class RawEditorState extends EditorState
         RawEditorStateTextInputClientMixin,
         RawEditorStateSelectionDelegateMixin {
   final GlobalKey _editorKey = GlobalKey();
+  final GlobalKey _positionKey = GlobalKey(debugLabel: '_positionKey');
 
   KeyboardVisibilityController? _keyboardVisibilityController;
   StreamSubscription<bool>? _keyboardVisibilitySubscription;
@@ -418,11 +417,69 @@ class RawEditorState extends EditorState
   TextSelectionToolbarAnchors get contextMenuAnchors {
     final glyphHeights = _getGlyphHeights();
     final points = renderEditor.getEndpointsForSelection(selection);
-    return TextSelectionToolbarAnchors.fromSelection(
+    return fromSelection(
       renderBox: renderEditor,
       startGlyphHeight: glyphHeights.startGlyphHeight,
       endGlyphHeight: glyphHeights.endGlyphHeight,
       selectionEndpoints: points,
+    );
+  }
+
+  ///This method is customized from TextSelectionToolbarAnchors.fromSelection
+  ///to calculate min/max position of editor to limit toolbar's visible arrange
+  TextSelectionToolbarAnchors fromSelection({
+    required RenderBox renderBox,
+    required double startGlyphHeight,
+    required double endGlyphHeight,
+    required List<TextSelectionPoint> selectionEndpoints,
+  }) {
+    final editingRegion = Rect.fromPoints(
+      renderBox.localToGlobal(Offset.zero),
+      renderBox.localToGlobal(renderBox.size.bottomRight(Offset.zero)),
+    );
+
+    if (editingRegion.left.isNaN ||
+        editingRegion.top.isNaN ||
+        editingRegion.right.isNaN ||
+        editingRegion.bottom.isNaN) {
+      return const TextSelectionToolbarAnchors(primaryAnchor: Offset.zero);
+    }
+
+    final isMultiline =
+        selectionEndpoints.last.point.dy - selectionEndpoints.first.point.dy >
+            endGlyphHeight / 2;
+
+    final selectionRect = Rect.fromLTRB(
+      isMultiline
+          ? editingRegion.left
+          : editingRegion.left + selectionEndpoints.first.point.dx,
+      editingRegion.top + selectionEndpoints.first.point.dy - startGlyphHeight,
+      isMultiline
+          ? editingRegion.right
+          : editingRegion.left + selectionEndpoints.last.point.dx,
+      editingRegion.top + selectionEndpoints.last.point.dy,
+    );
+
+    ///Calculate top/bottom here
+    final positionContext = _positionKey.currentContext!;
+    final renderBoxContainer = positionContext.findRenderObject()! as RenderBox;
+    final position = renderBoxContainer.localToGlobal(Offset.zero);
+    final offset = renderEditor.offset as ScrollPositionWithSingleContext?;
+    final size = renderEditor.size;
+    final viewport = offset?.viewportDimension ?? size.height;
+    final top = position.dy;
+    final bottom = position.dy + viewport;
+    ///
+
+    return TextSelectionToolbarAnchors(
+      primaryAnchor: Offset(
+        selectionRect.left + selectionRect.width / 2,
+        clampDouble(selectionRect.top, top, bottom),
+      ),
+      secondaryAnchor: Offset(
+        selectionRect.left + selectionRect.width / 2,
+        clampDouble(selectionRect.bottom, top, bottom),
+      ),
     );
   }
 
@@ -724,9 +781,9 @@ class RawEditorState extends EditorState
             }),
             child: Focus(
               focusNode: widget.focusNode,
-              onKey: _onKey,
               child: QuillKeyboardListener(
                 child: Container(
+                  key: _positionKey,
                   constraints: constraints,
                   child: child,
                 ),
@@ -736,142 +793,6 @@ class RawEditorState extends EditorState
         ),
       ),
     );
-  }
-
-  KeyEventResult _onKey(node, RawKeyEvent event) {
-    // Don't handle key if there is a meta key pressed.
-    if (event.isAltPressed || event.isControlPressed || event.isMetaPressed) {
-      return KeyEventResult.ignored;
-    }
-
-    if (event is! RawKeyDownEvent) {
-      return KeyEventResult.ignored;
-    }
-    // Handle indenting blocks when pressing the tab key.
-    if (event.logicalKey == LogicalKeyboardKey.tab) {
-      return _handleTabKey(event);
-    }
-
-    // Don't handle key if there is an active selection.
-    if (controller.selection.baseOffset != controller.selection.extentOffset) {
-      return KeyEventResult.ignored;
-    }
-
-    // Handle inserting lists when space is pressed following
-    // a list initiating phrase.
-    if (event.logicalKey == LogicalKeyboardKey.space) {
-      return _handleSpaceKey(event);
-    }
-
-    return KeyEventResult.ignored;
-  }
-
-  KeyEventResult _handleSpaceKey(RawKeyEvent event) {
-    final child =
-        controller.document.queryChild(controller.selection.baseOffset);
-    if (child.node == null) {
-      return KeyEventResult.ignored;
-    }
-
-    final line = child.node as Line?;
-    if (line == null) {
-      return KeyEventResult.ignored;
-    }
-
-    final text = castOrNull<leaf.Text>(line.first);
-    if (text == null) {
-      return KeyEventResult.ignored;
-    }
-
-    const olKeyPhrase = '1.';
-    const ulKeyPhrase = '-';
-
-    if (text.value == olKeyPhrase) {
-      _updateSelectionForKeyPhrase(olKeyPhrase, Attribute.ol);
-    } else if (text.value == ulKeyPhrase) {
-      _updateSelectionForKeyPhrase(ulKeyPhrase, Attribute.ul);
-    } else {
-      return KeyEventResult.ignored;
-    }
-
-    return KeyEventResult.handled;
-  }
-
-  KeyEventResult _handleTabKey(RawKeyEvent event) {
-    final child =
-        controller.document.queryChild(controller.selection.baseOffset);
-
-    KeyEventResult insertTabCharacter() {
-      controller.replaceText(controller.selection.baseOffset, 0, '\t', null);
-      _moveCursor(1);
-      return KeyEventResult.handled;
-    }
-
-    if (controller.selection.baseOffset != controller.selection.extentOffset) {
-      if (child.node == null || child.node!.parent == null) {
-        return KeyEventResult.handled;
-      }
-      final parentBlock = child.node!.parent!;
-      if (parentBlock.style.containsKey(Attribute.ol.key) ||
-          parentBlock.style.containsKey(Attribute.ul.key) ||
-          parentBlock.style.containsKey(Attribute.checked.key)) {
-        controller.indentSelection(!event.isShiftPressed);
-      }
-      return KeyEventResult.handled;
-    }
-
-    if (child.node == null) {
-      return insertTabCharacter();
-    }
-
-    final node = child.node!;
-
-    final parent = node.parent;
-    if (parent == null || parent is! Block) {
-      return insertTabCharacter();
-    }
-
-    if (node is! Line || (node.isNotEmpty && node.first is! leaf.Text)) {
-      return insertTabCharacter();
-    }
-
-    final parentBlock = parent;
-    if (parentBlock.style.containsKey(Attribute.ol.key) ||
-        parentBlock.style.containsKey(Attribute.ul.key) ||
-        parentBlock.style.containsKey(Attribute.checked.key)) {
-      if (node.isNotEmpty &&
-          (node.first as leaf.Text).value.isNotEmpty &&
-          controller.selection.base.offset > node.documentOffset) {
-        return insertTabCharacter();
-      }
-      controller.indentSelection(!event.isShiftPressed);
-      return KeyEventResult.handled;
-    }
-
-    if (node.isNotEmpty && (node.first as leaf.Text).value.isNotEmpty) {
-      return insertTabCharacter();
-    }
-
-    return insertTabCharacter();
-  }
-
-  void _moveCursor(int chars) {
-    final selection = controller.selection;
-    controller.updateSelection(
-        controller.selection.copyWith(
-            baseOffset: selection.baseOffset + chars,
-            extentOffset: selection.baseOffset + chars),
-        ChangeSource.LOCAL);
-  }
-
-  void _updateSelectionForKeyPhrase(String phrase, Attribute attribute) {
-    controller.replaceText(controller.selection.baseOffset - phrase.length,
-        phrase.length, '\n', null);
-    _moveCursor(-phrase.length);
-    controller
-      ..formatSelection(attribute)
-      // Remove the added newline.
-      ..replaceText(controller.selection.baseOffset + 1, 1, '', null);
   }
 
   void _handleSelectionChanged(

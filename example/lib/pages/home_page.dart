@@ -109,10 +109,17 @@ class _HomePageState extends State<HomePage> {
         drawer: Container(
           constraints:
               BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.7),
-          color: Colors.grey.shade800,
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.black38),
+            color: Colors.grey.shade800,
+          ),
           child: _buildMenuBar(context),
         ),
-        body: _buildWelcomeEditor(context),
+        body: Container(
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.black87),
+            ),
+            child: _buildWelcomeEditor(context)),
       ),
     );
   }
