@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
-import 'package:filesystem_picker/filesystem_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -191,6 +190,7 @@ class _HomePageState extends State<HomePage> {
       placeholder: 'Add content',
       enableSelectionToolbar: isMobile(),
       expands: false,
+      maxHeight: 150,
       padding: EdgeInsets.zero,
       onImagePaste: _onImagePaste,
       onTapUp: (details, p1) {
@@ -323,12 +323,13 @@ class _HomePageState extends State<HomePage> {
   bool _isDesktop() => !kIsWeb && !Platform.isAndroid && !Platform.isIOS;
 
   Future<String?> openFileSystemPickerForDesktop(BuildContext context) async {
-    return await FilesystemPicker.open(
-      context: context,
-      rootDirectory: await getApplicationDocumentsDirectory(),
-      fsType: FilesystemType.file,
-      fileTileSelectMode: FileTileSelectMode.wholeTile,
-    );
+    // return await FilesystemPicker.open(
+    //   context: context,
+    //   rootDirectory: await getApplicationDocumentsDirectory(),
+    //   fsType: FilesystemType.file,
+    //   fileTileSelectMode: FileTileSelectMode.wholeTile,
+    // );
+    return null;
   }
 
   // Renders the image picked by imagePicker from local file storage

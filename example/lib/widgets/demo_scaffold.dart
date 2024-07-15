@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:filesystem_picker/filesystem_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -76,12 +75,7 @@ class _DemoScaffoldState extends State<DemoScaffold> {
   }
 
   Future<String?> openFileSystemPickerForDesktop(BuildContext context) async {
-    return await FilesystemPicker.open(
-      context: context,
-      rootDirectory: await getApplicationDocumentsDirectory(),
-      fsType: FilesystemType.file,
-      fileTileSelectMode: FileTileSelectMode.wholeTile,
-    );
+    return null;
   }
 
   @override

@@ -923,7 +923,10 @@ class RenderEditor extends RenderEditableContainerBox
   final ValueNotifier<bool> _selectionEndInViewport = ValueNotifier<bool>(true);
 
   void _updateSelectionExtentsVisibility(Offset effectiveOffset) {
-    final visibleRegion = Offset.zero & size;
+    final height =
+        (offset as ScrollPositionWithSingleContext?)?.viewportDimension ??
+            size.height;
+    final visibleRegion = Offset.zero & Size(size.width, height);
     final startPosition =
         TextPosition(offset: selection.start, affinity: selection.affinity);
     final startOffset = _getOffsetForCaret(startPosition);
@@ -935,16 +938,26 @@ class RenderEditor extends RenderEditableContainerBox
     // _applyFloatingPointHack. Ideally, the rounding mismatch will be fixed and
     // this can be changed to be a strict check instead of an approximation.
     const visibleRegionSlop = 0.5;
-    _selectionStartInViewport.value = visibleRegion
-        .inflate(visibleRegionSlop)
-        .contains(startOffset + effectiveOffset);
+    print(visibleRegion.inflate(visibleRegionSlop));
+    print(startOffset + effectiveOffset);
+    if (preferredLineHeight(startPosition) > height) {
+      _selectionStartInViewport.value = false;
+    } else {
+      _selectionStartInViewport.value = visibleRegion
+          .inflate(visibleRegionSlop)
+          .contains(startOffset + effectiveOffset);
+    }
 
     final endPosition =
         TextPosition(offset: selection.end, affinity: selection.affinity);
     final endOffset = _getOffsetForCaret(endPosition);
-    _selectionEndInViewport.value = visibleRegion
-        .inflate(visibleRegionSlop)
-        .contains(endOffset + effectiveOffset);
+    if (preferredLineHeight(endPosition) > height) {
+      _selectionEndInViewport.value = false;
+    } else {
+      _selectionEndInViewport.value = visibleRegion
+          .inflate(visibleRegionSlop)
+          .contains(endOffset + effectiveOffset);
+    }
   }
 
   // returns offset relative to this at which the caret will be painted
@@ -954,7 +967,11 @@ class RenderEditor extends RenderEditableContainerBox
     final childPosition = child.globalToLocalPosition(position);
     final boxParentData = child.parentData as BoxParentData;
     final localOffsetForCaret = child.getOffsetForCaret(childPosition);
-    return boxParentData.offset + localOffsetForCaret;
+    var result = boxParentData.offset + localOffsetForCaret;
+    if (offset?.userScrollDirection == ScrollDirection.forward) {
+      result += Offset(0, preferredLineHeight(position));
+    }
+    return result;
   }
 
   void setDocument(Document doc) {
