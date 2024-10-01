@@ -26,7 +26,6 @@ class FlutterQuillEmbeds {
       [
         ImageEmbedBuilder(),
         VideoEmbedBuilder(onVideoInit: onVideoInit),
-        FormulaEmbedBuilder(),
       ];
 
   static List<EmbedBuilder> webBuilders() => [

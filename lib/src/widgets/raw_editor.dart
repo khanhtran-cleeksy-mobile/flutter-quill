@@ -38,6 +38,7 @@ import 'proxy.dart';
 import 'quill_single_child_scroll_view.dart';
 import 'raw_editor/raw_editor_state_selection_delegate_mixin.dart';
 import 'raw_editor/raw_editor_state_text_input_client_mixin.dart';
+import 'raw_system_context_menu.dart';
 import 'text_block.dart';
 import 'text_line.dart';
 import 'text_selection.dart';
@@ -149,6 +150,16 @@ class RawEditor extends StatefulWidget {
     BuildContext context,
     RawEditorState state,
   ) {
+    // If supported, show the system context menu.
+    if (SystemContextMenu.isSupported(context)) {
+      return TextFieldTapRegion(
+        child: RawSystemContextMenu.editableText(
+          editableTextState: state,
+        ),
+      );
+    }
+    // Otherwise, show the flutter-rendered context menu for the current
+    // platform.
     return TextFieldTapRegion(
       child: AdaptiveTextSelectionToolbar.buttonItems(
         buttonItems: state.contextMenuButtonItems,
@@ -415,7 +426,7 @@ class RawEditorState extends EditorState
   ///
   /// Copied from [EditableTextState].
   TextSelectionToolbarAnchors get contextMenuAnchors {
-    final glyphHeights = _getGlyphHeights();
+    final glyphHeights = getGlyphHeights();
     final points = renderEditor.getEndpointsForSelection(selection);
     return fromSelection(
       renderBox: renderEditor,
@@ -470,7 +481,6 @@ class RawEditorState extends EditorState
     final top = position.dy;
     final bottom = position.dy + viewport;
     ///
-
     return TextSelectionToolbarAnchors(
       primaryAnchor: Offset(
         selectionRect.left + selectionRect.width / 2,
@@ -487,7 +497,7 @@ class RawEditorState extends EditorState
   /// [RawEditorState].
   ///
   /// Copied from [EditableTextState].
-  _GlyphHeights _getGlyphHeights() {
+  _GlyphHeights getGlyphHeights() {
     // Only calculate handle rects if the text in the previous frame
     // is the same as the text in the current frame. This is done because
     // widget.renderObject contains the renderEditable from the previous frame.
