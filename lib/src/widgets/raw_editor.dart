@@ -150,16 +150,16 @@ class RawEditor extends StatefulWidget {
     BuildContext context,
     RawEditorState state,
   ) {
-    // If supported, show the system context menu.
-    if (SystemContextMenu.isSupported(context)) {
-      return TextFieldTapRegion(
-        child: RawSystemContextMenu.editableText(
-          editableTextState: state,
-        ),
-      );
-    }
-    // Otherwise, show the flutter-rendered context menu for the current
-    // platform.
+    // // If supported, show the system context menu.
+    // if (SystemContextMenu.isSupported(context)) {
+    //   return TextFieldTapRegion(
+    //     child: RawSystemContextMenu.editableText(
+    //       editableTextState: state,
+    //     ),
+    //   );
+    // }
+    // // Otherwise, show the flutter-rendered context menu for the current
+    // // platform.
     return TextFieldTapRegion(
       child: AdaptiveTextSelectionToolbar.buttonItems(
         buttonItems: state.contextMenuButtonItems,
