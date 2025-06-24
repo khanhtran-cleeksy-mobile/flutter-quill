@@ -527,31 +527,6 @@ class QuillToolbar extends StatelessWidget implements PreferredSizeWidget {
             iconTheme: iconTheme,
             afterButtonPressed: afterButtonPressed,
           ),
-        if (showIndent)
-          IndentButton(
-            svgIcon: QuillAssets.increaseIndent,
-            iconSize: toolbarIconSize,
-            tooltip: buttonTooltips[ToolbarButtons.indentIncrease],
-            controller: controller,
-            isIncrease: true,
-            iconTheme: iconTheme,
-            afterButtonPressed: afterButtonPressed,
-            colorDisabled: iconColorDisabled,
-          ),
-        if (showIndent)
-          IndentButton(
-            svgIcon: QuillAssets.decreaseIndent,
-            iconSize: toolbarIconSize,
-            tooltip: buttonTooltips[ToolbarButtons.indentDecrease],
-            controller: controller,
-            isIncrease: false,
-            iconTheme: iconTheme,
-            afterButtonPressed: afterButtonPressed,
-            colorDisabled: iconColorDisabled,
-          ),
-        if (showDividers && isButtonGroupShown[4] && isButtonGroupShown[5])
-          QuillDivider(axis,
-              color: sectionDividerColor, space: sectionDividerSpace),
         if (showLink)
           LinkStyleButton(
             tooltip: buttonTooltips[ToolbarButtons.link],
@@ -561,16 +536,6 @@ class QuillToolbar extends StatelessWidget implements PreferredSizeWidget {
             dialogTheme: dialogTheme,
             afterButtonPressed: afterButtonPressed,
             linkDialog: linkDialog,
-          ),
-        if (showSearchButton)
-          SearchButton(
-            icon: Icons.search,
-            iconSize: toolbarIconSize,
-            tooltip: buttonTooltips[ToolbarButtons.search],
-            controller: controller,
-            iconTheme: iconTheme,
-            dialogTheme: dialogTheme,
-            afterButtonPressed: afterButtonPressed,
           ),
         if (customButtons.isNotEmpty)
           if (showDividers)
@@ -595,6 +560,41 @@ class QuillToolbar extends StatelessWidget implements PreferredSizeWidget {
               iconColorDisabled: iconColorDisabled,
             ),
           ],
+        if (showDividers)
+          QuillDivider(axis,
+              color: sectionDividerColor, space: sectionDividerSpace),
+        if (showIndent)
+          IndentButton(
+            svgIcon: QuillAssets.increaseIndent,
+            iconSize: toolbarIconSize,
+            tooltip: buttonTooltips[ToolbarButtons.indentIncrease],
+            controller: controller,
+            isIncrease: true,
+            iconTheme: iconTheme,
+            afterButtonPressed: afterButtonPressed,
+            colorDisabled: iconColorDisabled,
+          ),
+        if (showIndent)
+          IndentButton(
+            svgIcon: QuillAssets.decreaseIndent,
+            iconSize: toolbarIconSize,
+            tooltip: buttonTooltips[ToolbarButtons.indentDecrease],
+            controller: controller,
+            isIncrease: false,
+            iconTheme: iconTheme,
+            afterButtonPressed: afterButtonPressed,
+            colorDisabled: iconColorDisabled,
+          ),
+        if (showSearchButton)
+          SearchButton(
+            icon: Icons.search,
+            iconSize: toolbarIconSize,
+            tooltip: buttonTooltips[ToolbarButtons.search],
+            controller: controller,
+            iconTheme: iconTheme,
+            dialogTheme: dialogTheme,
+            afterButtonPressed: afterButtonPressed,
+          ),
       ],
     );
   }
