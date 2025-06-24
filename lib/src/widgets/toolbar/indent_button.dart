@@ -4,9 +4,10 @@ import '../../../flutter_quill.dart';
 
 class IndentButton extends StatefulWidget {
   const IndentButton({
-    required this.icon,
     required this.controller,
     required this.isIncrease,
+    this.icon,
+    this.svgIcon,
     this.iconSize = kDefaultIconSize,
     this.iconTheme,
     this.afterButtonPressed,
@@ -15,7 +16,8 @@ class IndentButton extends StatefulWidget {
     Key? key,
   }) : super(key: key);
 
-  final IconData icon;
+  final IconData? icon;
+  final String? svgIcon;
   final double iconSize;
   final QuillController controller;
   final bool isIncrease;
@@ -84,7 +86,12 @@ class _IndentButtonState extends State<IndentButton> {
       highlightElevation: 0,
       hoverElevation: 0,
       size: widget.iconSize * kIconButtonFactor,
-      icon: Icon(widget.icon, size: widget.iconSize, color: iconColor),
+      icon: AppSvgPicture(
+        iconColor: iconColor,
+        iconSize: widget.iconSize,
+        icon: widget.icon,
+        svgIcon: widget.svgIcon,
+      ),
       fillColor: iconFillColor,
       borderRadius: widget.iconTheme?.borderRadius ?? 2,
       onPressed: () {

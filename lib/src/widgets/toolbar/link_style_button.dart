@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../gen/assets.gen.dart';
 import '../../models/documents/attribute.dart';
 import '../../models/rules/insert.dart';
 import '../../models/themes/quill_dialog_theme.dart';
@@ -71,10 +72,11 @@ class _LinkStyleButtonState extends State<LinkStyleButton> {
       highlightElevation: 0,
       hoverElevation: 0,
       size: widget.iconSize * kIconButtonFactor,
-      icon: Icon(
-        widget.icon ?? Icons.link,
-        size: widget.iconSize,
-        color: isToggled
+      icon: AppSvgPicture(
+        icon: widget.icon ?? Icons.link,
+        svgIcon: QuillAssets.link,
+        iconSize: widget.iconSize,
+        iconColor: isToggled
             ? (widget.iconTheme?.iconSelectedColor ??
                 theme.primaryIconTheme.color)
             : (widget.iconTheme?.iconUnselectedColor ?? theme.iconTheme.color),

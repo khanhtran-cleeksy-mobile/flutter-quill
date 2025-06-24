@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 
 import '../../models/documents/attribute.dart';
 import '../../models/documents/style.dart';
@@ -10,7 +11,8 @@ import '../toolbar.dart';
 typedef ToggleStyleButtonBuilder = Widget Function(
   BuildContext context,
   Attribute attribute,
-  IconData icon,
+  IconData? icon,
+  String? svgIcon,
   Color? fillColor,
   bool? isToggled,
   VoidCallback? onPressed,
@@ -22,8 +24,9 @@ typedef ToggleStyleButtonBuilder = Widget Function(
 class ToggleStyleButton extends StatefulWidget {
   const ToggleStyleButton({
     required this.attribute,
-    required this.icon,
     required this.controller,
+    this.icon,
+    this.svgIcon,
     this.iconSize = kDefaultIconSize,
     this.fillColor,
     this.childBuilder = defaultToggleStyleButtonBuilder,
@@ -35,7 +38,9 @@ class ToggleStyleButton extends StatefulWidget {
 
   final Attribute attribute;
 
-  final IconData icon;
+  final IconData? icon;
+  final String? svgIcon;
+
   final double iconSize;
 
   final Color? fillColor;
@@ -74,6 +79,7 @@ class _ToggleStyleButtonState extends State<ToggleStyleButton> {
         context,
         widget.attribute,
         widget.icon,
+        widget.svgIcon,
         widget.fillColor,
         _isToggled,
         _toggleAttribute,
@@ -126,7 +132,8 @@ class _ToggleStyleButtonState extends State<ToggleStyleButton> {
 Widget defaultToggleStyleButtonBuilder(
   BuildContext context,
   Attribute attribute,
-  IconData icon,
+  IconData? icon,
+  String? svgIcon,
   Color? fillColor,
   bool? isToggled,
   VoidCallback? onPressed,
@@ -155,10 +162,51 @@ Widget defaultToggleStyleButtonBuilder(
     highlightElevation: 0,
     hoverElevation: 0,
     size: iconSize * kIconButtonFactor,
-    icon: Icon(icon, size: iconSize, color: iconColor),
+    icon: AppSvgPicture(
+      iconColor: iconColor,
+      iconSize: iconSize,
+      icon: icon,
+      svgIcon: svgIcon,
+    ),
     fillColor: fill,
     onPressed: onPressed,
     afterPressed: afterPressed,
     borderRadius: iconTheme?.borderRadius ?? 2,
   );
+}
+
+class AppSvgPicture extends StatelessWidget {
+  const AppSvgPicture({
+    required this.iconColor,
+    required this.iconSize,
+    super.key,
+    this.svgIcon,
+    this.icon,
+  });
+
+  final Color? iconColor;
+  final String? svgIcon;
+  final IconData? icon;
+  final double iconSize;
+
+  @override
+  Widget build(BuildContext context) {
+    return svgIcon != null
+        ? SvgPicture.asset(
+            svgIcon!,
+            width: iconSize,
+            height: iconSize,
+            colorFilter: iconColor != null
+                ? ColorFilter.mode(
+                    iconColor!,
+                    BlendMode.srcIn,
+                  )
+                : null,
+          )
+        : Icon(
+            icon,
+            size: iconSize,
+            color: iconColor,
+          );
+  }
 }

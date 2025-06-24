@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:i18n_extension/i18n_widget.dart';
 
+import '../../gen/assets.gen.dart';
 import '../models/documents/attribute.dart';
 import '../models/themes/quill_custom_button.dart';
 import '../models/themes/quill_dialog_theme.dart';
@@ -300,7 +301,7 @@ class QuillToolbar extends StatelessWidget implements PreferredSizeWidget {
         if (showBoldButton)
           ToggleStyleButton(
             attribute: Attribute.bold,
-            icon: Icons.format_bold,
+            svgIcon: QuillAssets.bold,
             iconSize: toolbarIconSize,
             tooltip: buttonTooltips[ToolbarButtons.bold],
             controller: controller,
@@ -330,7 +331,7 @@ class QuillToolbar extends StatelessWidget implements PreferredSizeWidget {
         if (showItalicButton)
           ToggleStyleButton(
             attribute: Attribute.italic,
-            icon: Icons.format_italic,
+            svgIcon: QuillAssets.italic,
             iconSize: toolbarIconSize,
             tooltip: buttonTooltips[ToolbarButtons.italic],
             controller: controller,
@@ -350,7 +351,7 @@ class QuillToolbar extends StatelessWidget implements PreferredSizeWidget {
         if (showUnderLineButton)
           ToggleStyleButton(
             attribute: Attribute.underline,
-            icon: Icons.format_underline,
+            svgIcon: QuillAssets.underline,
             iconSize: toolbarIconSize,
             tooltip: buttonTooltips[ToolbarButtons.underline],
             controller: controller,
@@ -360,7 +361,7 @@ class QuillToolbar extends StatelessWidget implements PreferredSizeWidget {
         if (showStrikeThrough)
           ToggleStyleButton(
             attribute: Attribute.strikeThrough,
-            icon: Icons.format_strikethrough,
+            svgIcon: QuillAssets.strikethrough,
             iconSize: toolbarIconSize,
             tooltip: buttonTooltips[ToolbarButtons.strikeThrough],
             controller: controller,
@@ -476,7 +477,7 @@ class QuillToolbar extends StatelessWidget implements PreferredSizeWidget {
             attribute: Attribute.ol,
             tooltip: buttonTooltips[ToolbarButtons.listNumbers],
             controller: controller,
-            icon: Icons.format_list_numbered,
+            svgIcon: QuillAssets.number,
             iconSize: toolbarIconSize,
             iconTheme: iconTheme,
             afterButtonPressed: afterButtonPressed,
@@ -486,7 +487,7 @@ class QuillToolbar extends StatelessWidget implements PreferredSizeWidget {
             attribute: Attribute.ul,
             tooltip: buttonTooltips[ToolbarButtons.listBullets],
             controller: controller,
-            icon: Icons.format_list_bulleted,
+            svgIcon: QuillAssets.bullet,
             iconSize: toolbarIconSize,
             iconTheme: iconTheme,
             afterButtonPressed: afterButtonPressed,
@@ -528,7 +529,7 @@ class QuillToolbar extends StatelessWidget implements PreferredSizeWidget {
           ),
         if (showIndent)
           IndentButton(
-            icon: Icons.format_indent_increase,
+            svgIcon: QuillAssets.increaseIndent,
             iconSize: toolbarIconSize,
             tooltip: buttonTooltips[ToolbarButtons.indentIncrease],
             controller: controller,
@@ -539,7 +540,7 @@ class QuillToolbar extends StatelessWidget implements PreferredSizeWidget {
           ),
         if (showIndent)
           IndentButton(
-            icon: Icons.format_indent_decrease,
+            svgIcon: QuillAssets.decreaseIndent,
             iconSize: toolbarIconSize,
             tooltip: buttonTooltips[ToolbarButtons.indentDecrease],
             controller: controller,
