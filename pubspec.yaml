@@ -24,7 +24,7 @@ dependencies:
   device_info_plus: ^9.1.2
   platform: ^3.1.0
   pasteboard: ^0.2.0
-  flutter_svg: ^2.2.0
+  flutter_svg: 2.0.17
   flutter_regex: ^0.0.3
   # Dependencies for testing utilities
   flutter_test:
