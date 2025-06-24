@@ -86,7 +86,7 @@ class _IndentButtonState extends State<IndentButton> {
       highlightElevation: 0,
       hoverElevation: 0,
       size: widget.iconSize * kIconButtonFactor,
-      icon: AppSvgPicture(
+      icon: QuillSvgPicture(
         iconColor: iconColor,
         iconSize: widget.iconSize,
         icon: widget.icon,

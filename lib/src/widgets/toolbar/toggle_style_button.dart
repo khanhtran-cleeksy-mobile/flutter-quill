@@ -162,7 +162,7 @@ Widget defaultToggleStyleButtonBuilder(
     highlightElevation: 0,
     hoverElevation: 0,
     size: iconSize * kIconButtonFactor,
-    icon: AppSvgPicture(
+    icon: QuillSvgPicture(
       iconColor: iconColor,
       iconSize: iconSize,
       icon: icon,
@@ -175,8 +175,8 @@ Widget defaultToggleStyleButtonBuilder(
   );
 }
 
-class AppSvgPicture extends StatelessWidget {
-  const AppSvgPicture({
+class QuillSvgPicture extends StatelessWidget {
+  const QuillSvgPicture({
     required this.iconColor,
     required this.iconSize,
     super.key,

@@ -72,7 +72,7 @@ class _LinkStyleButtonState extends State<LinkStyleButton> {
       highlightElevation: 0,
       hoverElevation: 0,
       size: widget.iconSize * kIconButtonFactor,
-      icon: AppSvgPicture(
+      icon: QuillSvgPicture(
         icon: widget.icon ?? Icons.link,
         svgIcon: QuillAssets.link,
         iconSize: widget.iconSize,
