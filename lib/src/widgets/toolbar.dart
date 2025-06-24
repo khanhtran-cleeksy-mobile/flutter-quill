@@ -591,6 +591,7 @@ class QuillToolbar extends StatelessWidget implements PreferredSizeWidget {
               iconTheme: iconTheme,
               afterButtonPressed: afterButtonPressed,
               tooltip: customButton.tooltip,
+              iconColorDisabled: iconColorDisabled,
             ),
           ],
       ],

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 class QuillCustomButton {
   const QuillCustomButton({
     this.icon,
+    this.svgIcon,
     this.iconColor,
     this.onTap,
     this.tooltip,
@@ -11,6 +12,7 @@ class QuillCustomButton {
 
   ///The icon widget
   final IconData? icon;
+  final String? svgIcon;
 
   ///The icon color;
   final Color? iconColor;
