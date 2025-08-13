@@ -1108,7 +1108,7 @@ class RenderEditor extends RenderEditableContainerBox
     return <TextSelectionPoint>[basePoint, extentPoint];
   }
 
-  Offset? _lastTapDownPosition;
+  Offset? lastTapDownPosition;
 
   // Used on Desktop (mouse and keyboard enabled platforms) as base offset
   // for extending selection, either with combination of `Shift` + Click or
@@ -1117,7 +1117,7 @@ class RenderEditor extends RenderEditableContainerBox
 
   @override
   void handleTapDown(TapDownDetails details) {
-    _lastTapDownPosition = details.globalPosition;
+    lastTapDownPosition = details.globalPosition;
   }
 
   bool _isDragging = false;
@@ -1206,8 +1206,8 @@ class RenderEditor extends RenderEditableContainerBox
 
   @override
   void selectWordEdge(SelectionChangedCause cause) {
-    assert(_lastTapDownPosition != null);
-    final position = getPositionForOffset(_lastTapDownPosition!);
+    assert(lastTapDownPosition != null);
+    final position = getPositionForOffset(lastTapDownPosition!);
     final child = childAtPosition(position);
     final nodeOffset = child.container.offset;
     final localPosition = TextPosition(
@@ -1262,12 +1262,12 @@ class RenderEditor extends RenderEditableContainerBox
 
   @override
   void selectWord(SelectionChangedCause cause) {
-    selectWordsInRange(_lastTapDownPosition!, null, cause);
+    selectWordsInRange(lastTapDownPosition!, null, cause);
   }
 
   @override
   void selectPosition({required SelectionChangedCause cause}) {
-    selectPositionAt(from: _lastTapDownPosition!, cause: cause);
+    selectPositionAt(from: lastTapDownPosition!, cause: cause);
   }
 
   @override

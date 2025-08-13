@@ -480,6 +480,7 @@ class RawEditorState extends EditorState
     final viewport = offset?.viewportDimension ?? size.height;
     final top = position.dy;
     final bottom = position.dy + viewport;
+
     ///
     return TextSelectionToolbarAnchors(
       primaryAnchor: Offset(
