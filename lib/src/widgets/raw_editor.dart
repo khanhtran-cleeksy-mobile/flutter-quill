@@ -38,6 +38,7 @@ import 'proxy.dart';
 import 'quill_single_child_scroll_view.dart';
 import 'raw_editor/raw_editor_state_selection_delegate_mixin.dart';
 import 'raw_editor/raw_editor_state_text_input_client_mixin.dart';
+import 'system_context_menu.dart';
 import 'text_block.dart';
 import 'text_line.dart';
 import 'text_selection.dart';
@@ -159,6 +160,13 @@ class RawEditor extends StatefulWidget {
     // }
     // // Otherwise, show the flutter-rendered context menu for the current
     // // platform.
+    if (defaultTargetPlatform == TargetPlatform.iOS &&
+        SystemContextMenu.isSupported(context)) {
+      return QuillSystemContextMenu.editableText(
+        rawEditorState: state,
+        items: QuillSystemContextMenu.getDefaultItems(state),
+      );
+    }
     return TextFieldTapRegion(
       child: AdaptiveTextSelectionToolbar.buttonItems(
         buttonItems: state.contextMenuButtonItems,
@@ -432,6 +440,52 @@ class RawEditorState extends EditorState
       startGlyphHeight: glyphHeights.startGlyphHeight,
       endGlyphHeight: glyphHeights.endGlyphHeight,
       selectionEndpoints: points,
+    );
+  }
+
+  Rect get rect {
+    final glyphHeights = getGlyphHeights();
+    final points = renderEditor.getEndpointsForSelection(selection);
+    return getSelectionRect(
+      renderBox: renderEditor,
+      startGlyphHeight: glyphHeights.startGlyphHeight,
+      endGlyphHeight: glyphHeights.endGlyphHeight,
+      selectionEndpoints: points,
+    );
+  }
+
+  // This logic clone form https://api.flutter.dev/flutter/widgets/TextSelectionToolbarAnchors/getSelectionRect.html
+  static Rect getSelectionRect({
+    required RenderBox renderBox,
+    required double startGlyphHeight,
+    required double endGlyphHeight,
+    required List<TextSelectionPoint> selectionEndpoints,
+  }) {
+    final editingRegion = Rect.fromPoints(
+      renderBox.localToGlobal(Offset.zero),
+      renderBox.localToGlobal(renderBox.size.bottomRight(Offset.zero)),
+    );
+
+    if (editingRegion.left.isNaN ||
+        editingRegion.top.isNaN ||
+        editingRegion.right.isNaN ||
+        editingRegion.bottom.isNaN) {
+      return Rect.zero;
+    }
+
+    final isMultiline =
+        selectionEndpoints.last.point.dy - selectionEndpoints.first.point.dy >
+            endGlyphHeight / 2;
+
+    return Rect.fromLTRB(
+      isMultiline
+          ? editingRegion.left
+          : editingRegion.left + selectionEndpoints.first.point.dx,
+      editingRegion.top + selectionEndpoints.first.point.dy - startGlyphHeight,
+      isMultiline
+          ? editingRegion.right
+          : editingRegion.left + selectionEndpoints.last.point.dx,
+      editingRegion.top + selectionEndpoints.last.point.dy,
     );
   }
 
