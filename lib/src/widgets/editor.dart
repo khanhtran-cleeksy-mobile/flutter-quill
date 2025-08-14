@@ -200,7 +200,6 @@ class QuillEditor extends StatefulWidget {
     this.keyboardType,
     this.textInputAction,
     this.onEditingComplete,
-    this.contextMenuBuilder,
   }) : super(key: key);
 
   factory QuillEditor.basic({
@@ -466,8 +465,6 @@ class QuillEditor extends StatefulWidget {
 
   final VoidCallback? onEditingComplete;
 
-  final QuillEditorContextMenuBuilder? contextMenuBuilder;
-
   @override
   QuillEditorState createState() => QuillEditorState();
 }
@@ -534,9 +531,8 @@ class QuillEditorState extends State<QuillEditor>
       readOnly: widget.readOnly,
       placeholder: widget.placeholder,
       onLaunchUrl: widget.onLaunchUrl,
-      contextMenuBuilder: showSelectionToolbar
-          ? widget.contextMenuBuilder ?? RawEditor.defaultContextMenuBuilder
-          : null,
+      contextMenuBuilder:
+          showSelectionToolbar ? RawEditor.defaultContextMenuBuilder : null,
       showSelectionHandles: isMobile(theme.platform),
       showCursor: widget.showCursor,
       cursorStyle: CursorStyle(
