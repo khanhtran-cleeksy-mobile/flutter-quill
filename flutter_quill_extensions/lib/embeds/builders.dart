@@ -5,7 +5,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_quill/extensions.dart' as base;
 import 'package:flutter_quill/flutter_quill.dart' hide Text;
 import 'package:flutter_quill/translations.dart';
-import 'package:gallery_saver/gallery_saver.dart';
 import 'package:universal_html/html.dart' as html;
 
 import '../shims/dart_ui_fake.dart'
@@ -19,6 +18,9 @@ import 'widgets/youtube_video_app.dart';
 class ImageEmbedBuilder extends EmbedBuilder {
   @override
   String get key => BlockEmbed.imageType;
+
+  @override
+  bool get expanded => false;
 
   @override
   Widget build(
@@ -230,11 +232,11 @@ Widget _menuOptionsForReadonlyImage(
                 text: 'Save'.i18n,
                 onPressed: () {
                   imageUrl = appendFileExtensionToImageUrl(imageUrl);
-                  GallerySaver.saveImage(imageUrl).then((_) {
-                    ScaffoldMessenger.of(context)
-                        .showSnackBar(SnackBar(content: Text('Saved'.i18n)));
-                    Navigator.pop(context);
-                  });
+                  // GallerySaver.saveImage(imageUrl).then((_) {
+                  //   ScaffoldMessenger.of(context)
+                  //       .showSnackBar(SnackBar(content: Text('Saved'.i18n)));
+                  //   Navigator.pop(context);
+                  // });
                 },
               );
               final zoomOption = _SimpleDialogItem(

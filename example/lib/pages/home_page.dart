@@ -215,6 +215,14 @@ class _HomePageState extends State<HomePage> {
             const VerticalSpacing(0, 0),
             null),
         sizeSmall: const TextStyle(fontSize: 9),
+        subscript: const TextStyle(
+          fontFamily: 'SF-UI-Display',
+          fontFeatures: [FontFeature.subscripts()],
+        ),
+        superscript: const TextStyle(
+          fontFamily: 'SF-UI-Display',
+          fontFeatures: [FontFeature.superscripts()],
+        ),
       ),
       embedBuilders: [
         ...FlutterQuillEmbeds.builders(),

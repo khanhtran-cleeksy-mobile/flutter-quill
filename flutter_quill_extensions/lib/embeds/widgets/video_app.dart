@@ -34,8 +34,7 @@ class _VideoAppState extends State<VideoApp> {
     super.initState();
 
     _controller = widget.videoUrl.startsWith('http')
-        // ignore: deprecated_member_use
-        ? VideoPlayerController.network(widget.videoUrl)
+        ? VideoPlayerController.networkUrl(Uri.parse(widget.videoUrl))
         : VideoPlayerController.file(File(widget.videoUrl))
       ..initialize().then((_) {
         // Ensure the first frame is shown after the video is initialized,

@@ -3,6 +3,7 @@ import 'package:i18n_extension/i18n_widget.dart';
 
 import '../../gen/assets.gen.dart';
 import '../models/documents/attribute.dart';
+import '../models/structs/link_dialog_action.dart';
 import '../models/themes/quill_custom_button.dart';
 import '../models/themes/quill_dialog_theme.dart';
 import '../models/themes/quill_icon_theme.dart';
@@ -67,6 +68,7 @@ class QuillToolbar extends StatelessWidget implements PreferredSizeWidget {
     this.sectionDividerSpace,
     this.linkDialog,
     this.iconColorDisabled,
+    this.linkDialogAction,
     Key? key,
   }) : super(key: key);
 
@@ -161,6 +163,10 @@ class QuillToolbar extends StatelessWidget implements PreferredSizeWidget {
     /// Custom link dialog
     Widget? Function(String? link, String? text)? linkDialog,
     Color? iconColorDisabled,
+
+    /// Validate the legitimacy of hyperlinks
+    RegExp? linkRegExp,
+    LinkDialogAction? linkDialogAction,
     Key? key,
   }) {
     final isButtonGroupShown = [
@@ -176,11 +182,11 @@ class QuillToolbar extends StatelessWidget implements PreferredSizeWidget {
           showBackgroundColorButton ||
           showClearFormat ||
           embedButtons?.isNotEmpty == true,
-      showAlignmentButtons || showDirection,
-      showLeftAlignment,
-      showCenterAlignment,
-      showRightAlignment,
-      showJustifyAlignment,
+      showLeftAlignment ||
+          showCenterAlignment ||
+          showRightAlignment ||
+          showJustifyAlignment ||
+          showDirection,
       showHeaderStyle,
       showListNumbers || showListBullets || showListCheck || showCodeBlock,
       showQuote || showIndent,
@@ -585,6 +591,20 @@ class QuillToolbar extends StatelessWidget implements PreferredSizeWidget {
             afterButtonPressed: afterButtonPressed,
             colorDisabled: iconColorDisabled,
           ),
+        if (showDividers && isButtonGroupShown[4] && isButtonGroupShown[5])
+          QuillDivider(axis,
+              color: sectionDividerColor, space: sectionDividerSpace),
+        if (showLink)
+          LinkStyleButton(
+            tooltip: buttonTooltips[ToolbarButtons.link],
+            controller: controller,
+            iconSize: toolbarIconSize,
+            iconTheme: iconTheme,
+            dialogTheme: dialogTheme,
+            afterButtonPressed: afterButtonPressed,
+            linkRegExp: linkRegExp,
+            linkDialogAction: linkDialogAction,
+          ),
         if (showSearchButton)
           SearchButton(
             icon: Icons.search,
@@ -595,6 +615,27 @@ class QuillToolbar extends StatelessWidget implements PreferredSizeWidget {
             dialogTheme: dialogTheme,
             afterButtonPressed: afterButtonPressed,
           ),
+        if (customButtons.isNotEmpty)
+          if (showDividers)
+            QuillDivider(axis,
+                color: sectionDividerColor, space: sectionDividerSpace),
+        for (final customButton in customButtons)
+          if (customButton.child != null) ...[
+            InkWell(
+              onTap: customButton.onTap,
+              child: customButton.child,
+            ),
+          ] else ...[
+            CustomButton(
+              onPressed: customButton.onTap,
+              icon: customButton.icon,
+              iconColor: customButton.iconColor,
+              iconSize: toolbarIconSize,
+              iconTheme: iconTheme,
+              afterButtonPressed: afterButtonPressed,
+              tooltip: customButton.tooltip,
+            ),
+          ],
       ],
     );
   }
@@ -606,6 +647,9 @@ class QuillToolbar extends StatelessWidget implements PreferredSizeWidget {
   final WrapAlignment toolbarIconAlignment;
   final WrapCrossAlignment toolbarIconCrossAlignment;
   final bool multiRowsDisplay;
+
+  // Overrides the action in the _LinkDialog widget
+  final LinkDialogAction? linkDialogAction;
 
   /// The color of the toolbar.
   ///
@@ -632,6 +676,7 @@ class QuillToolbar extends StatelessWidget implements PreferredSizeWidget {
   final Widget? Function(String? link, String? text)? linkDialog;
 
   final Color? iconColorDisabled;
+
   @override
   Size get preferredSize => axis == Axis.horizontal
       ? Size.fromHeight(toolbarSize)

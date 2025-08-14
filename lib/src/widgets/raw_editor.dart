@@ -20,7 +20,6 @@ import '../models/documents/nodes/block.dart';
 import '../models/documents/nodes/embeddable.dart';
 import '../models/documents/nodes/line.dart';
 import '../models/documents/nodes/node.dart';
-import '../models/documents/style.dart';
 import '../models/structs/offset_value.dart';
 import '../models/structs/vertical_spacing.dart';
 import '../models/themes/quill_dialog_theme.dart';
@@ -38,7 +37,6 @@ import 'proxy.dart';
 import 'quill_single_child_scroll_view.dart';
 import 'raw_editor/raw_editor_state_selection_delegate_mixin.dart';
 import 'raw_editor/raw_editor_state_text_input_client_mixin.dart';
-import 'raw_system_context_menu.dart';
 import 'text_block.dart';
 import 'text_line.dart';
 import 'text_selection.dart';
@@ -347,8 +345,8 @@ class RawEditorState extends EditorState
 
   // for pasting style
   @override
-  List<OffsetValue<Style>> get pasteStyle => _pasteStyle;
-  List<OffsetValue<Style>> _pasteStyle = <OffsetValue<Style>>[];
+  List<OffsetValue> get pasteStyleAndEmbed => _pasteStyleAndEmbed;
+  List<OffsetValue> _pasteStyleAndEmbed = <OffsetValue>[];
 
   @override
   String get pastePlainText => _pastePlainText;
@@ -480,6 +478,7 @@ class RawEditorState extends EditorState
     final viewport = offset?.viewportDimension ?? size.height;
     final top = position.dy;
     final bottom = position.dy + viewport;
+
     ///
     return TextSelectionToolbarAnchors(
       primaryAnchor: Offset(
@@ -950,7 +949,7 @@ class RawEditorState extends EditorState
         widget.selectionColor,
         widget.enableInteractiveSelection,
         _hasFocus,
-        View.of(context).devicePixelRatio,
+        MediaQuery.of(context).devicePixelRatio,
         _cursorCont);
     return editableTextLine;
   }
@@ -1529,7 +1528,7 @@ class RawEditorState extends EditorState
   void copySelection(SelectionChangedCause cause) {
     controller.copiedImageUrl = null;
     _pastePlainText = controller.getPlainText();
-    _pasteStyle = controller.getAllIndividualSelectionStyles();
+    _pasteStyleAndEmbed = controller.getAllIndividualSelectionStylesAndEmbed();
 
     final text = textEditingValue.text;
     if (selection.isCollapsed) {
@@ -1568,7 +1567,7 @@ class RawEditorState extends EditorState
   void cutSelection(SelectionChangedCause cause) {
     controller.copiedImageUrl = null;
     _pastePlainText = controller.getPlainText();
-    _pasteStyle = controller.getAllIndividualSelectionStyles();
+    _pasteStyleAndEmbed = controller.getAllIndividualSelectionStylesAndEmbed();
 
     if (widget.readOnly) {
       return;

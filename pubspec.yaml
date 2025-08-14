@@ -1,8 +1,7 @@
 name: flutter_quill
-description: A rich text editor supporting mobile and web (Demo App @ bulletjournal.us)
-version: 7.2.10
-#author: bulletjournal
-homepage: https://bulletjournal.us/home/index.html
+description: A rich text editor built for the modern Android, iOS, web and desktop platforms. It is the WYSIWYG editor and a Quill component for Flutter.
+version: 7.4.1
+homepage: https://1o24bbs.com/c/bulletjournal/108
 repository: https://github.com/singerdmx/flutter-quill
 
 environment:
@@ -16,7 +15,7 @@ dependencies:
   flutter_colorpicker: ^1.0.3
   flutter_keyboard_visibility: ^6.0.0
   quiver: ^3.2.1
-  url_launcher: ^6.1.11
+  url_launcher: ^6.1.12
   pedantic: ^1.11.1
   characters: ^1.3.0
   diff_match_patch: ^0.4.1

@@ -14,7 +14,6 @@ import 'package:i18n_extension/i18n_widget.dart';
 import '../models/documents/document.dart';
 import '../models/documents/nodes/container.dart' as container_node;
 import '../models/documents/nodes/leaf.dart';
-import '../models/documents/style.dart';
 import '../models/structs/offset_value.dart';
 import '../models/themes/quill_dialog_theme.dart';
 import '../utils/platform.dart';
@@ -39,7 +38,7 @@ abstract class EditorState extends State<RawEditor>
 
   EditorTextSelectionOverlay? get selectionOverlay;
 
-  List<OffsetValue<Style>> get pasteStyle;
+  List<OffsetValue> get pasteStyleAndEmbed;
 
   String get pastePlainText;
 
@@ -196,6 +195,7 @@ class QuillEditor extends StatefulWidget {
     this.onSetData,
     this.onPaste,
     this.scrollPadding = const EdgeInsets.all(10),
+    this.contextMenuBuilder,
     Key? key,
     this.keyboardType,
     this.textInputAction,
@@ -208,6 +208,11 @@ class QuillEditor extends StatefulWidget {
     GlobalKey<EditorState>? editorKey,
     Brightness? keyboardAppearance,
     Iterable<EmbedBuilder>? embedBuilders,
+    EdgeInsetsGeometry padding = EdgeInsets.zero,
+    bool autoFocus = true,
+    bool expands = false,
+    FocusNode? focusNode,
+    String? placeholder,
 
     /// The locale to use for the editor toolbar, defaults to system locale
     /// More at https://github.com/singerdmx/flutter-quill#translation
@@ -218,14 +223,15 @@ class QuillEditor extends StatefulWidget {
       editorKey: editorKey,
       scrollController: ScrollController(),
       scrollable: true,
-      focusNode: FocusNode(),
-      autoFocus: true,
+      focusNode: focusNode ?? FocusNode(),
+      autoFocus: autoFocus,
       readOnly: readOnly,
-      expands: false,
-      padding: EdgeInsets.zero,
+      expands: expands,
+      padding: padding,
       keyboardAppearance: keyboardAppearance ?? Brightness.light,
       locale: locale,
       embedBuilders: embedBuilders,
+      placeholder: placeholder,
     );
   }
 
@@ -451,6 +457,9 @@ class QuillEditor extends StatefulWidget {
   /// This field supported for paste action. This will override the default
   final Future Function()? onPaste;
 
+  // Allows for creating a custom context menu
+  final QuillEditorContextMenuBuilder? contextMenuBuilder;
+
   /// Configuration of handler for media content inserted via the system input
   /// method.
   ///
@@ -506,8 +515,8 @@ class QuillEditorState extends State<QuillEditor>
       selectionColor = selectionTheme.selectionColor ??
           cupertinoTheme.primaryColor.withOpacity(0.40);
       cursorRadius ??= const Radius.circular(2);
-      cursorOffset =
-          Offset(iOSHorizontalOffset / View.of(context).devicePixelRatio, 0);
+      cursorOffset = Offset(
+          iOSHorizontalOffset / MediaQuery.of(context).devicePixelRatio, 0);
     } else {
       textSelectionControls = materialTextSelectionControls;
       paintCursorAboveText = false;
@@ -531,8 +540,9 @@ class QuillEditorState extends State<QuillEditor>
       readOnly: widget.readOnly,
       placeholder: widget.placeholder,
       onLaunchUrl: widget.onLaunchUrl,
-      contextMenuBuilder:
-          showSelectionToolbar ? RawEditor.defaultContextMenuBuilder : null,
+      contextMenuBuilder: showSelectionToolbar
+          ? (widget.contextMenuBuilder ?? RawEditor.defaultContextMenuBuilder)
+          : null,
       showSelectionHandles: isMobile(theme.platform),
       showCursor: widget.showCursor,
       cursorStyle: CursorStyle(
@@ -1057,7 +1067,9 @@ class RenderEditor extends RenderEditableContainerBox
     if (textSelection.isCollapsed) {
       final child = childAtPosition(textSelection.extent);
       final localPosition = TextPosition(
-          offset: textSelection.extentOffset - child.container.offset);
+        offset: textSelection.extentOffset - child.container.offset,
+        affinity: textSelection.affinity,
+      );
       final localOffset = child.getOffsetForCaret(localPosition);
       final parentData = child.parentData as BoxParentData;
       return <TextSelectionPoint>[
