@@ -127,9 +127,7 @@ class EditorTextSelectionGestureDetectorBuilder {
     if (shouldShowSelectionToolbar &&
         defaultTargetPlatform == TargetPlatform.iOS &&
         lastTapDownPosition == renderEditor?.lastTapDownPosition) {
-      SchedulerBinding.instance.addPostFrameCallback((_) {
-        editor?.showToolbar();
-      });
+      editor?.toggleToolbar(false);
     }
   }
 

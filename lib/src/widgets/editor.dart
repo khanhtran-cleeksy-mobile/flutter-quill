@@ -53,6 +53,14 @@ abstract class EditorState extends State<RawEditor>
   bool showToolbar();
 
   void requestKeyboard();
+
+  void toggleToolbar([bool hideHandles = true]) {
+    if (selectionOverlay != null) {
+      hideToolbar(hideHandles);
+    } else {
+      showToolbar();
+    }
+  }
 }
 
 /// Base interface for editable render objects.
@@ -739,7 +747,14 @@ class _QuillEditorSelectionGestureDetectorBuilder
     editor!.hideToolbar();
 
     try {
-      if (delegate.selectionEnabled && !_isPositionSelected(details)) {
+      if (delegate.selectionEnabled &&
+          !_isPositionSelected(
+            TapUpDetails(
+              kind: details.kind,
+              globalPosition: details.globalPosition,
+              localPosition: details.localPosition,
+            ),
+          )) {
         final _platform = Theme.of(_state.context).platform;
         if (isAppleOS(_platform) || isDesktop()) {
           // added isDesktop() to enable extend selection in Windows platform
@@ -907,6 +922,7 @@ class RenderEditor extends RenderEditableContainerBox
   Document document;
   TextSelection selection;
   bool _hasFocus = false;
+  bool get hasFocus => _hasFocus;
   LayerLink _startHandleLayerLink;
   LayerLink _endHandleLayerLink;
 
@@ -1732,6 +1748,18 @@ class RenderEditor extends RenderEditableContainerBox
   void systemFontsDidChange() {
     super.systemFontsDidChange();
     markNeedsLayout();
+  }
+
+  Offset? _lastSecondaryTapDownPosition;
+
+  /// {@template flutter.rendering.RenderEditable.lastSecondaryTapDownPosition}
+  /// The position of the most recent secondary tap down event on this text
+  /// input.
+  /// {@endtemplate}
+  Offset? get lastSecondaryTapDownPosition => _lastSecondaryTapDownPosition;
+
+  void handleSecondaryTapDown(TapDownDetails details) {
+    _lastSecondaryTapDownPosition = details.globalPosition;
   }
 }
 
