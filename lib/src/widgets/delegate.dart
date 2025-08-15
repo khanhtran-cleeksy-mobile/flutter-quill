@@ -133,7 +133,7 @@ class EditorTextSelectionGestureDetectorBuilder {
         defaultTargetPlatform == TargetPlatform.iOS &&
         lastTapDownPosition == currentTapDownPosition) {
       SchedulerBinding.instance.addPostFrameCallback((_) {
-        editor?.showToolbar();
+        editor?.toggleToolbar(false);
       });
     }
   }
