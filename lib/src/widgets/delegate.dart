@@ -110,7 +110,11 @@ class EditorTextSelectionGestureDetectorBuilder {
   ///  which triggers this callback.
   @protected
   void onTapDown(TapDownDetails details) {
-    final lastTapDownPosition = details.globalPosition;
+    final lastTapDownPosition = renderEditor!
+        .getPositionForOffset(renderEditor!.lastTapDownPosition ?? Offset.zero)
+        .offset;
+    final currentTapDownPosition =
+        renderEditor!.getPositionForOffset(details.globalPosition).offset;
 
     renderEditor!.handleTapDown(details);
     // The selection overlay should only be shown when the user is interacting
@@ -124,10 +128,13 @@ class EditorTextSelectionGestureDetectorBuilder {
                 .mouse || // Enable word selection by mouse double tap
         kind == PointerDeviceKind.touch ||
         kind == PointerDeviceKind.stylus;
+
     if (shouldShowSelectionToolbar &&
         defaultTargetPlatform == TargetPlatform.iOS &&
-        lastTapDownPosition == renderEditor?.lastTapDownPosition) {
-      editor?.toggleToolbar(false);
+        lastTapDownPosition == currentTapDownPosition) {
+      SchedulerBinding.instance.addPostFrameCallback((_) {
+        editor?.showToolbar();
+      });
     }
   }
 
