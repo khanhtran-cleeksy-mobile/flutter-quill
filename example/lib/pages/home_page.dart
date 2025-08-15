@@ -115,11 +115,7 @@ class _HomePageState extends State<HomePage> {
           ),
           child: _buildMenuBar(context),
         ),
-        body: Container(
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.black87),
-            ),
-            child: _buildWelcomeEditor(context)),
+        body: _buildWelcomeEditor(context),
       ),
     );
   }
@@ -196,8 +192,7 @@ class _HomePageState extends State<HomePage> {
       readOnly: false,
       placeholder: 'Add content',
       enableSelectionToolbar: isMobile(),
-      expands: false,
-      maxHeight: 150,
+      expands: true,
       padding: EdgeInsets.zero,
       onImagePaste: _onImagePaste,
       onTapUp: (details, p1) {
@@ -301,17 +296,7 @@ class _HomePageState extends State<HomePage> {
             child: Container(
               color: Colors.white,
               padding: const EdgeInsets.only(left: 16, right: 16),
-              child: SingleChildScrollView(
-                controller: scrollController,
-                child: Column(
-                  children: [
-                    const SizedBox(
-                      height: 100,
-                    ),
-                    quillEditor,
-                  ],
-                ),
-              ),
+              child: quillEditor,
             ),
           ),
           kIsWeb

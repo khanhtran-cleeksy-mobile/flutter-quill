@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
@@ -109,6 +110,12 @@ class EditorTextSelectionGestureDetectorBuilder {
   ///  which triggers this callback.
   @protected
   void onTapDown(TapDownDetails details) {
+    final lastTapDownPosition = renderEditor!
+        .getPositionForOffset(renderEditor!.lastTapDownPosition ?? Offset.zero)
+        .offset;
+    final currentTapDownPosition =
+        renderEditor!.getPositionForOffset(details.globalPosition).offset;
+
     renderEditor!.handleTapDown(details);
     // The selection overlay should only be shown when the user is interacting
     // through a touch screen (via either a finger or a stylus).
@@ -121,6 +128,14 @@ class EditorTextSelectionGestureDetectorBuilder {
                 .mouse || // Enable word selection by mouse double tap
         kind == PointerDeviceKind.touch ||
         kind == PointerDeviceKind.stylus;
+
+    if (shouldShowSelectionToolbar &&
+        defaultTargetPlatform == TargetPlatform.iOS &&
+        lastTapDownPosition == currentTapDownPosition) {
+      SchedulerBinding.instance.addPostFrameCallback((_) {
+        editor?.toggleToolbar(false);
+      });
+    }
   }
 
   /// Handler for [EditorTextSelectionGestureDetector.onForcePressStart].

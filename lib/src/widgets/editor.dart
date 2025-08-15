@@ -53,6 +53,14 @@ abstract class EditorState extends State<RawEditor>
   bool showToolbar();
 
   void requestKeyboard();
+
+  void toggleToolbar([bool hideHandles = true]) {
+    if (selectionOverlay != null) {
+      hideToolbar(hideHandles);
+    } else {
+      showToolbar();
+    }
+  }
 }
 
 /// Base interface for editable render objects.
@@ -739,7 +747,14 @@ class _QuillEditorSelectionGestureDetectorBuilder
     editor!.hideToolbar();
 
     try {
-      if (delegate.selectionEnabled && !_isPositionSelected(details)) {
+      if (delegate.selectionEnabled &&
+          !_isPositionSelected(
+            TapUpDetails(
+              kind: details.kind,
+              globalPosition: details.globalPosition,
+              localPosition: details.localPosition,
+            ),
+          )) {
         final _platform = Theme.of(_state.context).platform;
         if (isAppleOS(_platform) || isDesktop()) {
           // added isDesktop() to enable extend selection in Windows platform
@@ -907,6 +922,7 @@ class RenderEditor extends RenderEditableContainerBox
   Document document;
   TextSelection selection;
   bool _hasFocus = false;
+  bool get hasFocus => _hasFocus;
   LayerLink _startHandleLayerLink;
   LayerLink _endHandleLayerLink;
 
@@ -1108,7 +1124,7 @@ class RenderEditor extends RenderEditableContainerBox
     return <TextSelectionPoint>[basePoint, extentPoint];
   }
 
-  Offset? _lastTapDownPosition;
+  Offset? lastTapDownPosition;
 
   // Used on Desktop (mouse and keyboard enabled platforms) as base offset
   // for extending selection, either with combination of `Shift` + Click or
@@ -1117,7 +1133,7 @@ class RenderEditor extends RenderEditableContainerBox
 
   @override
   void handleTapDown(TapDownDetails details) {
-    _lastTapDownPosition = details.globalPosition;
+    lastTapDownPosition = details.globalPosition;
   }
 
   bool _isDragging = false;
@@ -1206,8 +1222,8 @@ class RenderEditor extends RenderEditableContainerBox
 
   @override
   void selectWordEdge(SelectionChangedCause cause) {
-    assert(_lastTapDownPosition != null);
-    final position = getPositionForOffset(_lastTapDownPosition!);
+    assert(lastTapDownPosition != null);
+    final position = getPositionForOffset(lastTapDownPosition!);
     final child = childAtPosition(position);
     final nodeOffset = child.container.offset;
     final localPosition = TextPosition(
@@ -1262,12 +1278,12 @@ class RenderEditor extends RenderEditableContainerBox
 
   @override
   void selectWord(SelectionChangedCause cause) {
-    selectWordsInRange(_lastTapDownPosition!, null, cause);
+    selectWordsInRange(lastTapDownPosition!, null, cause);
   }
 
   @override
   void selectPosition({required SelectionChangedCause cause}) {
-    selectPositionAt(from: _lastTapDownPosition!, cause: cause);
+    selectPositionAt(from: lastTapDownPosition!, cause: cause);
   }
 
   @override
@@ -1732,6 +1748,18 @@ class RenderEditor extends RenderEditableContainerBox
   void systemFontsDidChange() {
     super.systemFontsDidChange();
     markNeedsLayout();
+  }
+
+  Offset? _lastSecondaryTapDownPosition;
+
+  /// {@template flutter.rendering.RenderEditable.lastSecondaryTapDownPosition}
+  /// The position of the most recent secondary tap down event on this text
+  /// input.
+  /// {@endtemplate}
+  Offset? get lastSecondaryTapDownPosition => _lastSecondaryTapDownPosition;
+
+  void handleSecondaryTapDown(TapDownDetails details) {
+    _lastSecondaryTapDownPosition = details.globalPosition;
   }
 }
 
