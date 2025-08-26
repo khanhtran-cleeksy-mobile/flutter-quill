@@ -324,9 +324,7 @@ class EditorTextSelectionOverlay {
   /// Hides the entire overlay including the toolbar and the handles.
   void hide() {
     if (_handles != null) {
-      _handles![0].remove();
-      _handles![1].remove();
-      _handles = null;
+      hideHandles();
     }
     if (toolbar != null) {
       hideToolbar();

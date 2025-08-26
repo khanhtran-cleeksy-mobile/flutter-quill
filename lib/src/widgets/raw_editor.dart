@@ -160,7 +160,7 @@ class RawEditor extends StatefulWidget {
     // }
     // // Otherwise, show the flutter-rendered context menu for the current
     // // platform.
-    return TextFieldTapRegion(
+    return _SelectionToolbarWrapper(
       child: AdaptiveTextSelectionToolbar.buttonItems(
         buttonItems: state.contextMenuButtonItems,
         anchors: state.contextMenuAnchors,
@@ -480,6 +480,7 @@ class RawEditorState extends EditorState
     final viewport = offset?.viewportDimension ?? size.height;
     final top = position.dy;
     final bottom = position.dy + viewport;
+
     ///
     return TextSelectionToolbarAnchors(
       primaryAnchor: Offset(
@@ -1244,7 +1245,14 @@ class RawEditorState extends EditorState
 
   void _updateOrDisposeSelectionOverlayIfNeeded() {
     if (_selectionOverlay != null) {
-      if (!_hasFocus || selection.isCollapsed) {
+      if (!_hasFocus) {
+        if (!selection.isCollapsed) {
+          textEditingValue = textEditingValue.copyWith(
+            selection: TextSelection.collapsed(
+              offset: textEditingValue.selection.end,
+            ),
+          );
+        }
         _selectionOverlay!.dispose();
         _selectionOverlay = null;
       } else {
@@ -2895,4 +2903,51 @@ class _GlyphHeights {
 
   final double startGlyphHeight;
   final double endGlyphHeight;
+}
+
+class _SelectionToolbarWrapper extends StatefulWidget {
+  const _SelectionToolbarWrapper({
+    required this.child,
+  });
+
+  final Widget child;
+
+  @override
+  State<_SelectionToolbarWrapper> createState() =>
+      _SelectionToolbarWrapperState();
+}
+
+class _SelectionToolbarWrapperState extends State<_SelectionToolbarWrapper>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+
+  Animation<double> get _opacity => _controller.view;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _controller = AnimationController(
+        duration: SelectionOverlay.fadeDuration, vsync: this);
+    _controller.forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return TextFieldTapRegion(
+      child: Directionality(
+        textDirection: Directionality.of(this.context),
+        child: FadeTransition(
+          opacity: _opacity,
+          child: widget.child,
+        ),
+      ),
+    );
+  }
 }

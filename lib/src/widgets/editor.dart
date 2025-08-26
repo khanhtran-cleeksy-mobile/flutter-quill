@@ -53,6 +53,14 @@ abstract class EditorState extends State<RawEditor>
   bool showToolbar();
 
   void requestKeyboard();
+
+  void toggleToolbar([bool hideHandles = true]) {
+    if (selectionOverlay != null && selectionOverlay!.toolbar != null) {
+      hideToolbar(hideHandles);
+    } else {
+      showToolbar();
+    }
+  }
 }
 
 /// Base interface for editable render objects.
@@ -736,8 +744,6 @@ class _QuillEditorSelectionGestureDetectorBuilder
       return;
     }
 
-    editor!.hideToolbar();
-
     try {
       if (delegate.selectionEnabled && !_isPositionSelected(details)) {
         final _platform = Theme.of(_state.context).platform;
@@ -775,6 +781,28 @@ class _QuillEditorSelectionGestureDetectorBuilder
                   ..selectPosition(cause: SelectionChangedCause.tap)
                   ..onSelectionCompleted();
               }
+              final previousSelection = renderEditor!.selection;
+              final textPosition = renderEditor!.getPositionForOffset(
+                details.globalPosition,
+              );
+              final isAffinityTheSame =
+                  textPosition.affinity == previousSelection.affinity;
+              if (((_positionWasOnSelectionExclusive(textPosition) &&
+                          !previousSelection.isCollapsed) ||
+                      (_positionWasOnSelectionInclusive(textPosition) &&
+                          previousSelection.isCollapsed &&
+                          isAffinityTheSame)) &&
+                  renderEditor!.hasFocus) {
+                editor!.toggleToolbar(false);
+              } else {
+                renderEditor!.selectWordEdge(SelectionChangedCause.tap);
+                if (previousSelection == editor!.textEditingValue.selection &&
+                    renderEditor!.hasFocus) {
+                  editor!.toggleToolbar(false);
+                } else {
+                  editor!.hideToolbar(false);
+                }
+              }
               break;
             case PointerDeviceKind.trackpad:
               // TODO: Handle this case.
@@ -789,6 +817,26 @@ class _QuillEditorSelectionGestureDetectorBuilder
     } finally {
       _state._requestKeyboard();
     }
+  }
+
+  bool _positionWasOnSelectionExclusive(TextPosition textPosition) {
+    final TextSelection? selection = renderEditor!.selection;
+    if (selection == null) {
+      return false;
+    }
+
+    return selection.start < textPosition.offset &&
+        selection.end > textPosition.offset;
+  }
+
+  bool _positionWasOnSelectionInclusive(TextPosition textPosition) {
+    final TextSelection? selection = renderEditor!.selection;
+    if (selection == null) {
+      return false;
+    }
+
+    return selection.start <= textPosition.offset &&
+        selection.end >= textPosition.offset;
   }
 
   @override
@@ -907,6 +955,9 @@ class RenderEditor extends RenderEditableContainerBox
   Document document;
   TextSelection selection;
   bool _hasFocus = false;
+
+  bool get hasFocus => _hasFocus;
+
   LayerLink _startHandleLayerLink;
   LayerLink _endHandleLayerLink;
 
