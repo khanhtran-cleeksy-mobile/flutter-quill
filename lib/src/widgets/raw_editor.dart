@@ -1559,7 +1559,7 @@ class RawEditorState extends EditorState
     }
     if (cause == SelectionChangedCause.toolbar) {
       bringIntoView(selection.extent);
-
+      hideToolbar(false);
       // Collapse the selection and hide the toolbar and handles.
       userUpdateTextEditingValue(
         TextEditingValue(
@@ -1569,6 +1569,7 @@ class RawEditorState extends EditorState
         SelectionChangedCause.toolbar,
       );
     }
+    _clipboardStatus.update();
   }
 
   /// Cut current selection to [Clipboard].
@@ -1609,6 +1610,8 @@ class RawEditorState extends EditorState
   /// Paste text from [Clipboard].
   @override
   Future<void> pasteText(SelectionChangedCause cause) async {
+    hideToolbar();
+
     if (widget.readOnly) {
       return;
     }
@@ -1742,6 +1745,7 @@ class RawEditorState extends EditorState
       ),
       cause,
     );
+    _selectionOverlay!.setHandlesVisible(_shouldShowSelectionHandles());
 
     if (cause == SelectionChangedCause.toolbar) {
       bringIntoView(selection.extent);
