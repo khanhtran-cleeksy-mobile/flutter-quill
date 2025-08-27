@@ -3,9 +3,8 @@
 // found in the LICENSE file.
 
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_quill/src/widgets/raw_editor.dart';
+import 'raw_editor.dart';
 
 /// Displays the system context menu on top of the Flutter view.
 ///
@@ -40,16 +39,14 @@ class RawSystemContextMenu extends StatefulWidget {
   /// Creates an instance of [RawSystemContextMenu] that points to the given
   /// [anchor].
   const RawSystemContextMenu._({
-    super.key,
-    required this.anchor,
+    required this.anchor, super.key,
     this.onSystemHide,
   });
 
   /// Creates an instance of [RawSystemContextMenu] for the field indicated by the
   /// given [EditableTextState].
   factory RawSystemContextMenu.editableText({
-    Key? key,
-    required RawEditorState editableTextState,
+    required RawEditorState editableTextState, Key? key,
   }) {
     final selection = editableTextState.contextMenuAnchors;
     return RawSystemContextMenu._(

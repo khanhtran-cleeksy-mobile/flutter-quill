@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -16,12 +15,6 @@ import '../universal_ui/universal_ui.dart';
 import '../widgets/time_stamp_embed_widget.dart';
 import 'read_only_page.dart';
 
-enum _SelectionType {
-  none,
-  word,
-  // line,
-}
-
 class HomePage extends StatefulWidget {
   @override
   _HomePageState createState() => _HomePageState();
@@ -31,7 +24,6 @@ class _HomePageState extends State<HomePage> {
   QuillController? _controller;
   final FocusNode _focusNode = FocusNode();
   Timer? _selectAllTimer;
-  _SelectionType _selectionType = _SelectionType.none;
   final scrollController = ScrollController();
 
   @override
@@ -124,102 +116,42 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  bool _onTripleClickSelection() {
-    final controller = _controller!;
 
-    _selectAllTimer?.cancel();
-    _selectAllTimer = null;
-
-    // If you want to select all text after paragraph, uncomment this line
-    // if (_selectionType == _SelectionType.line) {
-    //   final selection = TextSelection(
-    //     baseOffset: 0,
-    //     extentOffset: controller.document.length,
-    //   );
-
-    //   controller.updateSelection(selection, ChangeSource.REMOTE);
-
-    //   _selectionType = _SelectionType.none;
-
-    //   return true;
-    // }
-
-    if (controller.selection.isCollapsed) {
-      _selectionType = _SelectionType.none;
-    }
-
-    if (_selectionType == _SelectionType.none) {
-      _selectionType = _SelectionType.word;
-      _startTripleClickTimer();
-      return false;
-    }
-
-    if (_selectionType == _SelectionType.word) {
-      final child = controller.document.queryChild(
-        controller.selection.baseOffset,
-      );
-      final offset = child.node?.documentOffset ?? 0;
-      final length = child.node?.length ?? 0;
-
-      final selection = TextSelection(
-        baseOffset: offset,
-        extentOffset: offset + length,
-      );
-
-      controller.updateSelection(selection, ChangeSource.REMOTE);
-
-      // _selectionType = _SelectionType.line;
-
-      _selectionType = _SelectionType.none;
-
-      _startTripleClickTimer();
-
-      return true;
-    }
-
-    return false;
-  }
-
-  void _startTripleClickTimer() {
-    _selectAllTimer = Timer(const Duration(milliseconds: 900), () {
-      _selectionType = _SelectionType.none;
-    });
-  }
 
   Widget _buildWelcomeEditor(BuildContext context) {
-    Widget quillEditor = QuillEditor(
-      controller: _controller!,
-      scrollController: ScrollController(),
-      scrollable: true,
-      focusNode: _focusNode,
-      autoFocus: false,
-      readOnly: false,
-      placeholder: 'Add content',
-      enableSelectionToolbar: isMobile(),
-      expands: false,
-      maxHeight: 150,
-      padding: EdgeInsets.zero,
-      onImagePaste: _onImagePaste,
-      onTapUp: (details, p1) {
-        return _onTripleClickSelection();
-      },
-      customStyles: DefaultStyles(
-        h1: DefaultTextBlockStyle(
-            const TextStyle(
-              fontSize: 32,
-              color: Colors.black,
-              height: 1.15,
-              fontWeight: FontWeight.w300,
-            ),
-            const VerticalSpacing(16, 0),
-            const VerticalSpacing(0, 0),
-            null),
-        sizeSmall: const TextStyle(fontSize: 9),
+    Widget quillEditor = Container(
+      color: Colors.black12,
+      child: QuillEditor(
+        controller: _controller!,
+        scrollController: ScrollController(),
+        scrollable: true,
+        focusNode: _focusNode,
+        autoFocus: true,
+        readOnly: false,
+        placeholder: 'Add content',
+        enableSelectionToolbar: isMobile(),
+        expands: false,
+        maxHeight: 150,
+        padding: EdgeInsets.zero,
+        onImagePaste: _onImagePaste,
+        customStyles: DefaultStyles(
+          h1: DefaultTextBlockStyle(
+              const TextStyle(
+                fontSize: 32,
+                color: Colors.black,
+                height: 1.15,
+                fontWeight: FontWeight.w300,
+              ),
+              const VerticalSpacing(16, 0),
+              const VerticalSpacing(0, 0),
+              null),
+          sizeSmall: const TextStyle(fontSize: 9),
+        ),
+        embedBuilders: [
+          ...FlutterQuillEmbeds.builders(),
+          TimeStampEmbedBuilderWidget()
+        ],
       ),
-      embedBuilders: [
-        ...FlutterQuillEmbeds.builders(),
-        TimeStampEmbedBuilderWidget()
-      ],
     );
     if (kIsWeb) {
       quillEditor = QuillEditor(
@@ -232,9 +164,6 @@ class _HomePageState extends State<HomePage> {
           placeholder: 'Add content',
           expands: false,
           padding: EdgeInsets.zero,
-          onTapUp: (details, p1) {
-            return _onTripleClickSelection();
-          },
           customStyles: DefaultStyles(
             h1: DefaultTextBlockStyle(
                 const TextStyle(
@@ -253,7 +182,7 @@ class _HomePageState extends State<HomePage> {
             TimeStampEmbedBuilderWidget()
           ]);
     }
-    var toolbar = QuillToolbar.basic(
+    final toolbar = QuillToolbar.basic(
       controller: _controller!,
       embedButtons: FlutterQuillEmbeds.buttons(
         // provide a callback to enable picking images from device.
@@ -269,28 +198,6 @@ class _HomePageState extends State<HomePage> {
       showAlignmentButtons: true,
       afterButtonPressed: _focusNode.requestFocus,
     );
-    if (kIsWeb) {
-      toolbar = QuillToolbar.basic(
-        controller: _controller!,
-        embedButtons: FlutterQuillEmbeds.buttons(
-          onImagePickCallback: _onImagePickCallback,
-          webImagePickImpl: _webImagePickImpl,
-        ),
-        showAlignmentButtons: true,
-        afterButtonPressed: _focusNode.requestFocus,
-      );
-    }
-    if (_isDesktop()) {
-      toolbar = QuillToolbar.basic(
-        controller: _controller!,
-        embedButtons: FlutterQuillEmbeds.buttons(
-          onImagePickCallback: _onImagePickCallback,
-          filePickImpl: openFileSystemPickerForDesktop,
-        ),
-        showAlignmentButtons: true,
-        afterButtonPressed: _focusNode.requestFocus,
-      );
-    }
 
     return SafeArea(
       child: Column(
@@ -301,33 +208,18 @@ class _HomePageState extends State<HomePage> {
             child: Container(
               color: Colors.white,
               padding: const EdgeInsets.only(left: 16, right: 16),
-              child: SingleChildScrollView(
-                controller: scrollController,
-                child: Column(
-                  children: [
-                    const SizedBox(
-                      height: 100,
-                    ),
-                    quillEditor,
-                  ],
-                ),
-              ),
+              child: quillEditor,
             ),
           ),
-          kIsWeb
-              ? Expanded(
-                  child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
-                  child: toolbar,
-                ))
-              : Container(child: toolbar)
+          Container(child: toolbar),
+          // Container(color: Colors.red,height: 30,),
+          // TextFormField(
+          // keyboardType: TextInputType.multiline,minLines: 3,maxLines: 5,)
         ],
       ),
     );
   }
 
-  bool _isDesktop() => !kIsWeb && !Platform.isAndroid && !Platform.isIOS;
 
   Future<String?> openFileSystemPickerForDesktop(BuildContext context) async {
     // return await FilesystemPicker.open(
@@ -350,19 +242,6 @@ class _HomePageState extends State<HomePage> {
     return copiedFile.path.toString();
   }
 
-  Future<String?> _webImagePickImpl(
-      OnImagePickCallback onImagePickCallback) async {
-    final result = await FilePicker.platform.pickFiles();
-    if (result == null) {
-      return null;
-    }
-
-    // Take first, because we don't allow picking multiple files.
-    final fileName = result.files.first.name;
-    final file = File(fileName);
-
-    return onImagePickCallback(file);
-  }
 
   // Renders the video picked by imagePicker from local file storage
   // You can also upload the picked video to any server (eg : AWS s3

@@ -3,6 +3,7 @@ description: Embed extensions for flutter_quill including image, video, formula 
 version: 0.3.3
 homepage: https://bulletjournal.us/home/index.html
 repository: https://github.com/singerdmx/flutter-quill/tree/master/flutter_quill_extensions
+publish_to: "none"
 
 environment:
   sdk: ">=2.17.0 <4.0.0"

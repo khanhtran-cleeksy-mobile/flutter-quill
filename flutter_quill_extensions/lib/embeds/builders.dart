@@ -1,11 +1,9 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_quill/extensions.dart' as base;
 import 'package:flutter_quill/flutter_quill.dart' hide Text;
 import 'package:flutter_quill/translations.dart';
-// import 'package:gallery_saver/gallery_saver.dart';
 import 'package:universal_html/html.dart' as html;
 
 import '../shims/dart_ui_fake.dart'

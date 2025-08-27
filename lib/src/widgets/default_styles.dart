@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 
 import '../models/documents/attribute.dart';
@@ -209,7 +207,7 @@ class DefaultStyles {
 
     final inlineCodeStyle = TextStyle(
       fontSize: 14,
-      color: themeData.colorScheme.primary.withOpacity(0.8),
+      color: themeData.colorScheme.primary.withValues(alpha:0.8),
       fontFamily: fontFamily,
     );
 
@@ -217,7 +215,7 @@ class DefaultStyles {
         h1: DefaultTextBlockStyle(
             defaultTextStyle.style.copyWith(
               fontSize: 34,
-              color: defaultTextStyle.style.color!.withOpacity(0.70),
+              color: defaultTextStyle.style.color!.withValues(alpha:0.70),
               height: 1.15,
               fontWeight: FontWeight.w300,
               decoration: TextDecoration.none,
@@ -228,7 +226,7 @@ class DefaultStyles {
         h2: DefaultTextBlockStyle(
             defaultTextStyle.style.copyWith(
               fontSize: 24,
-              color: defaultTextStyle.style.color!.withOpacity(0.70),
+              color: defaultTextStyle.style.color!.withValues(alpha:0.70),
               height: 1.15,
               fontWeight: FontWeight.normal,
               decoration: TextDecoration.none,
@@ -239,7 +237,7 @@ class DefaultStyles {
         h3: DefaultTextBlockStyle(
             defaultTextStyle.style.copyWith(
               fontSize: 20,
-              color: defaultTextStyle.style.color!.withOpacity(0.70),
+              color: defaultTextStyle.style.color!.withValues(alpha:0.70),
               height: 1.25,
               fontWeight: FontWeight.w500,
               decoration: TextDecoration.none,
@@ -279,7 +277,7 @@ class DefaultStyles {
             defaultTextStyle.style.copyWith(
               fontSize: 20,
               height: 1.5,
-              color: Colors.grey.withOpacity(0.6),
+              color: Colors.grey.withValues(alpha:0.6),
             ),
             const VerticalSpacing(0, 0),
             const VerticalSpacing(0, 0),
@@ -287,7 +285,7 @@ class DefaultStyles {
         lists: DefaultListBlockStyle(
             baseStyle, baseSpacing, const VerticalSpacing(0, 6), null, null),
         quote: DefaultTextBlockStyle(
-            TextStyle(color: baseStyle.color!.withOpacity(0.6)),
+            TextStyle(color: baseStyle.color!.withValues(alpha:0.6)),
             baseSpacing,
             const VerticalSpacing(6, 2),
             BoxDecoration(
@@ -297,7 +295,7 @@ class DefaultStyles {
             )),
         code: DefaultTextBlockStyle(
             TextStyle(
-              color: Colors.blue.shade900.withOpacity(0.9),
+              color: Colors.blue.shade900.withValues(alpha:0.9),
               fontFamily: fontFamily,
               fontSize: 13,
               height: 1.15,
