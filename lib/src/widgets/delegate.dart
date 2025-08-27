@@ -108,7 +108,7 @@ class EditorTextSelectionGestureDetectorBuilder {
   ///  * [EditorTextSelectionGestureDetector.onTapDown],
   ///  which triggers this callback.
   @protected
-  void onTapDown(TapDownDetails details) {
+  void onTapDown(TapDragDownDetails details) {
     renderEditor!.handleTapDown(details);
     // The selection overlay should only be shown when the user is interacting
     // through a touch screen (via either a finger or a stylus).
@@ -144,6 +144,7 @@ class EditorTextSelectionGestureDetectorBuilder {
         null,
         SelectionChangedCause.forcePress,
       );
+      editor!.showToolbar();
     }
   }
 
@@ -180,7 +181,7 @@ class EditorTextSelectionGestureDetectorBuilder {
   ///  * [EditorTextSelectionGestureDetector.onSingleTapUp], which triggers
   ///    this callback.
   @protected
-  void onSingleTapUp(TapUpDetails details) {
+  void onSingleTapUp(TapDragUpDetails details) {
     if (delegate.selectionEnabled) {
       renderEditor!.selectWordEdge(SelectionChangedCause.tap);
     }
@@ -188,7 +189,8 @@ class EditorTextSelectionGestureDetectorBuilder {
 
   /// onSingleTapUp for mouse right click
   @protected
-  void onSecondarySingleTapUp(TapUpDetails details) {
+  void onSecondarySingleTapUp() {
+      renderEditor!.selectWord(SelectionChangedCause.tap);
     // added to show toolbar by right click
     if (shouldShowSelectionToolbar) {
       editor!.showToolbar();
@@ -271,20 +273,12 @@ class EditorTextSelectionGestureDetectorBuilder {
   ///  * [EditorTextSelectionGestureDetector.onDoubleTapDown],
   ///  which triggers this callback.
   @protected
-  void onDoubleTapDown(TapDownDetails details) {
+  void onDoubleTapDown(TapDragDownDetails details) {
     if (delegate.selectionEnabled) {
-      renderEditor!.selectWord(SelectionChangedCause.tap);
-      // allow the selection to get updated before trying to bring up
-      // toolbars.
-      //
-      // if double tap happens on an editor that doesn't
-      // have focus, selection hasn't been set when the toolbars
-      // get added
-      SchedulerBinding.instance.addPostFrameCallback((_) {
-        if (shouldShowSelectionToolbar) {
-          editor!.showToolbar();
-        }
-      });
+      renderEditor!.selectWord(SelectionChangedCause.doubleTap);
+      if (shouldShowSelectionToolbar) {
+        editor!.showToolbar();
+      }
     }
   }
 
@@ -297,7 +291,7 @@ class EditorTextSelectionGestureDetectorBuilder {
   ///  * [EditorTextSelectionGestureDetector.onDragSelectionStart],
   ///  which triggers this callback.
   @protected
-  void onDragSelectionStart(DragStartDetails details) {
+  void onDragSelectionStart(TapDragStartDetails details) {
     renderEditor!.handleDragStart(details);
   }
 
@@ -313,7 +307,7 @@ class EditorTextSelectionGestureDetectorBuilder {
   @protected
   void onDragSelectionUpdate(
       //DragStartDetails startDetails,
-      DragUpdateDetails updateDetails) {
+      TapDragUpdateDetails updateDetails) {
     renderEditor!.extendSelection(updateDetails.globalPosition,
         cause: SelectionChangedCause.drag);
   }
@@ -327,7 +321,7 @@ class EditorTextSelectionGestureDetectorBuilder {
   ///  * [EditorTextSelectionGestureDetector.onDragSelectionEnd],
   ///  which triggers this callback.
   @protected
-  void onDragSelectionEnd(DragEndDetails details) {
+  void onDragSelectionEnd(TapDragEndDetails details) {
     renderEditor!.handleDragEnd(details);
     if (isDesktop() &&
         delegate.selectionEnabled &&
@@ -345,25 +339,24 @@ class EditorTextSelectionGestureDetectorBuilder {
       {required HitTestBehavior behavior,
       required Widget child,
       Key? key,
-      bool detectWordBoundary = true}) {
-    return EditorTextSelectionGestureDetector(
+      }) {
+    return TextSelectionGestureDetector(
         key: key,
         onTapDown: onTapDown,
         onForcePressStart:
             delegate.forcePressEnabled ? onForcePressStart : null,
         onForcePressEnd: delegate.forcePressEnabled ? onForcePressEnd : null,
+        onSecondaryTap: onSecondarySingleTapUp,
         onSingleTapUp: onSingleTapUp,
         onSingleTapCancel: onSingleTapCancel,
         onSingleLongTapStart: onSingleLongTapStart,
         onSingleLongTapMoveUpdate: onSingleLongTapMoveUpdate,
         onSingleLongTapEnd: onSingleLongTapEnd,
         onDoubleTapDown: onDoubleTapDown,
-        onSecondarySingleTapUp: onSecondarySingleTapUp,
         onDragSelectionStart: onDragSelectionStart,
         onDragSelectionUpdate: onDragSelectionUpdate,
         onDragSelectionEnd: onDragSelectionEnd,
         behavior: behavior,
-        detectWordBoundary: detectWordBoundary,
         child: child);
   }
 }

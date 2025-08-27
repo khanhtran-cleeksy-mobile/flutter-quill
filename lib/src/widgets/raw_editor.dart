@@ -38,7 +38,6 @@ import 'proxy.dart';
 import 'quill_single_child_scroll_view.dart';
 import 'raw_editor/raw_editor_state_selection_delegate_mixin.dart';
 import 'raw_editor/raw_editor_state_text_input_client_mixin.dart';
-import 'raw_system_context_menu.dart';
 import 'text_block.dart';
 import 'text_line.dart';
 import 'text_selection.dart';
@@ -1479,18 +1478,9 @@ class RawEditorState extends EditorState
       return;
     }
     if (_hasFocus) {
-      final keyboardAlreadyShown = _keyboardVisible;
       openConnectionIfNeeded();
-      if (!keyboardAlreadyShown) {
-        /// delay 500 milliseconds for waiting keyboard show up
-        Future.delayed(const Duration(milliseconds: 500), _showCaretOnScreen);
-      } else {
-        _showCaretOnScreen();
-      }
     } else {
-      WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-        widget.focusNode.requestFocus();
-      });
+      widget.focusNode.requestFocus();
     }
   }
 

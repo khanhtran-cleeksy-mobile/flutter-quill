@@ -245,7 +245,6 @@ class EditorTextSelectionOverlay {
           onSelectionHandleChanged: (newSelection) {
             _handleSelectionHandleChanged(newSelection, position);
           },
-          onSelectionHandleTapped: onSelectionHandleTapped,
           startHandleLayerLink: startHandleLayerLink,
           endHandleLayerLink: endHandleLayerLink,
           renderObject: renderObject,
@@ -369,7 +368,6 @@ class _TextSelectionHandleOverlay extends StatefulWidget {
     required this.endHandleLayerLink,
     required this.renderObject,
     required this.onSelectionHandleChanged,
-    required this.onSelectionHandleTapped,
     required this.selectionControls,
     this.dragStartBehavior = DragStartBehavior.start,
     Key? key,
@@ -381,7 +379,6 @@ class _TextSelectionHandleOverlay extends StatefulWidget {
   final LayerLink endHandleLayerLink;
   final RenderEditor renderObject;
   final ValueChanged<TextSelection?> onSelectionHandleChanged;
-  final VoidCallback? onSelectionHandleTapped;
   final TextSelectionControls selectionControls;
   final DragStartBehavior dragStartBehavior;
 
@@ -494,11 +491,6 @@ class _TextSelectionHandleOverlayState
     widget.onSelectionHandleChanged(newSelection);
   }
 
-  void _handleTap() {
-    if (widget.onSelectionHandleTapped != null) {
-      widget.onSelectionHandleTapped!();
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -574,7 +566,6 @@ class _TextSelectionHandleOverlayState
             dragStartBehavior: widget.dragStartBehavior,
             onPanStart: _handleDragStart,
             onPanUpdate: _handleDragUpdate,
-            onTap: _handleTap,
             child: Padding(
               padding: EdgeInsets.only(
                 left: padding.left,

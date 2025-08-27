@@ -110,7 +110,7 @@ abstract class RenderAbstractEditor implements TextLayoutMetrics {
   ///
   /// When [ignorePointer] is true, an ancestor widget must respond to tap
   /// down events by calling this method.
-  void handleTapDown(TapDownDetails details);
+  void handleTapDown(TapDragDownDetails details);
 
   /// Selects the set words of a paragraph in a given range of global positions.
   ///
@@ -376,11 +376,12 @@ class QuillEditor extends StatefulWidget {
 
   // Returns whether gesture is handled
   final bool Function(
-      TapDownDetails details, TextPosition Function(Offset offset))? onTapDown;
+          TapDragDownDetails details, TextPosition Function(Offset offset))?
+      onTapDown;
 
   // Returns whether gesture is handled
   final bool Function(
-      TapUpDetails details, TextPosition Function(Offset offset))? onTapUp;
+      TapDragUpDetails details, TextPosition Function(Offset offset))? onTapUp;
 
   // Returns whether gesture is handled
   final bool Function(
@@ -584,16 +585,12 @@ class QuillEditorState extends State<QuillEditor>
       onEditingComplete: widget.onEditingComplete,
     );
 
-    final editor = I18n(
-      initialLocale: widget.locale,
-      child: selectionEnabled
-          ? _selectionGestureDetectorBuilder.build(
-              behavior: HitTestBehavior.translucent,
-              detectWordBoundary: widget.detectWordBoundary,
-              child: child,
-            )
-          : child,
-    );
+    final editor = selectionEnabled
+        ? _selectionGestureDetectorBuilder.build(
+            behavior: HitTestBehavior.translucent,
+            child: child,
+          )
+        : child;
 
     if (kIsWeb) {
       // Intercept RawKeyEvent on Web to prevent it from propagating to parents
@@ -667,7 +664,18 @@ class _QuillEditorSelectionGestureDetectorBuilder
   }
 
   @override
-  void onForcePressEnd(ForcePressDetails details) {}
+  void onForcePressEnd(ForcePressDetails details) {
+    assert(delegate.forcePressEnabled);
+    shouldShowSelectionToolbar = true;
+    renderEditor!.selectWordsInRange(
+      details.globalPosition,
+      null,
+      SelectionChangedCause.forcePress,
+    );
+    if (shouldShowSelectionToolbar) {
+      editor!.showToolbar();
+    }
+  }
 
   @override
   void onSingleLongTapMoveUpdate(LongPressMoveUpdateDetails details) {
@@ -697,7 +705,7 @@ class _QuillEditorSelectionGestureDetectorBuilder
     }
   }
 
-  bool _isPositionSelected(TapUpDetails details) {
+  bool _isPositionSelected(TapDragUpDetails details) {
     if (_state.widget.controller.document.isEmpty()) {
       return false;
     }
@@ -718,7 +726,7 @@ class _QuillEditorSelectionGestureDetectorBuilder
   }
 
   @override
-  void onTapDown(TapDownDetails details) {
+  void onTapDown(TapDragDownDetails details) {
     if (_state.widget.onTapDown != null) {
       if (renderEditor != null &&
           _state.widget.onTapDown!(
@@ -737,7 +745,7 @@ class _QuillEditorSelectionGestureDetectorBuilder
   }
 
   @override
-  void onSingleTapUp(TapUpDetails details) {
+  void onSingleTapUp(TapDragUpDetails details) {
     if (_state.widget.onTapUp != null &&
         renderEditor != null &&
         _state.widget.onTapUp!(details, renderEditor!.getPositionForOffset)) {
@@ -1167,13 +1175,13 @@ class RenderEditor extends RenderEditableContainerBox
   TextSelection? _extendSelectionOrigin;
 
   @override
-  void handleTapDown(TapDownDetails details) {
+  void handleTapDown(TapDragDownDetails details) {
     _lastTapDownPosition = details.globalPosition;
   }
 
   bool _isDragging = false;
 
-  void handleDragStart(DragStartDetails details) {
+  void handleDragStart(TapDragStartDetails details) {
     _isDragging = true;
 
     final newSelection = selectPositionAt(
@@ -1186,7 +1194,7 @@ class RenderEditor extends RenderEditableContainerBox
     _extendSelectionOrigin = newSelection;
   }
 
-  void handleDragEnd(DragEndDetails details) {
+  void handleDragEnd(TapDragEndDetails details) {
     _isDragging = false;
     onSelectionCompleted();
   }
