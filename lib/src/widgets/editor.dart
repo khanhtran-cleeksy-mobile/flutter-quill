@@ -1210,7 +1210,7 @@ class RenderEditor extends RenderEditableContainerBox
     final lastWord =
         to == null ? firstWord : selectWordAtPosition(getPositionForOffset(to));
 
-    _handleSelectionChange(
+    handleSelectionChange(
       TextSelection(
         baseOffset: firstWord.base.offset,
         extentOffset: lastWord.extent.offset,
@@ -1220,7 +1220,7 @@ class RenderEditor extends RenderEditableContainerBox
     );
   }
 
-  void _handleSelectionChange(
+  void handleSelectionChange(
     TextSelection nextSelection,
     SelectionChangedCause cause,
   ) {
@@ -1243,7 +1243,7 @@ class RenderEditor extends RenderEditableContainerBox
     final position = getPositionForOffset(to);
 
     if (position.offset < _extendSelectionOrigin!.baseOffset) {
-      _handleSelectionChange(
+      handleSelectionChange(
         TextSelection(
           baseOffset: position.offset,
           extentOffset: _extendSelectionOrigin!.extentOffset,
@@ -1252,7 +1252,7 @@ class RenderEditor extends RenderEditableContainerBox
         cause,
       );
     } else if (position.offset > _extendSelectionOrigin!.extentOffset) {
-      _handleSelectionChange(
+      handleSelectionChange(
         TextSelection(
           baseOffset: _extendSelectionOrigin!.baseOffset,
           extentOffset: position.offset,
@@ -1279,12 +1279,12 @@ class RenderEditor extends RenderEditableContainerBox
       end: localWord.end + nodeOffset,
     );
     if (position.offset - word.start <= 1 && word.end != position.offset) {
-      _handleSelectionChange(
+      handleSelectionChange(
         TextSelection.collapsed(offset: word.start),
         cause,
       );
     } else {
-      _handleSelectionChange(
+      handleSelectionChange(
         TextSelection.collapsed(
             offset: word.end, affinity: TextAffinity.upstream),
         cause,
@@ -1315,7 +1315,7 @@ class RenderEditor extends RenderEditableContainerBox
     );
 
     // Call [onSelectionChanged] only when the selection actually changed.
-    _handleSelectionChange(newSelection, cause);
+    handleSelectionChange(newSelection, cause);
     return newSelection;
   }
 
