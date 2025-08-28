@@ -800,6 +800,7 @@ class _QuillEditorSelectionGestureDetectorBuilder
               break;
           }
         } else {
+          editor!.hideToolbar();
           renderEditor!
             ..selectPosition(cause: SelectionChangedCause.tap)
             ..onSelectionCompleted();
