@@ -160,5 +160,5 @@ mixin RawEditorStateSelectionDelegateMixin on EditorState
       widget.contextMenuBuilder != null && !widget.readOnly;
 
   @override
-  bool get selectAllEnabled => widget.contextMenuBuilder != null;
+  bool get selectAllEnabled => widget.contextMenuBuilder != null && textEditingValue.text != '\n';
 }
