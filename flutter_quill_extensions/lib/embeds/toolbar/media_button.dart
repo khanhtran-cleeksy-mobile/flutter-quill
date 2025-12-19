@@ -230,7 +230,7 @@ class _MediaLinkDialogState extends State<MediaLinkDialog> {
         ? Theme.of(context)
             .elevatedButtonTheme
             .style
-            ?.copyWith(fixedSize: MaterialStatePropertyAll(widget.buttonSize))
+            ?.copyWith(fixedSize: WidgetStatePropertyAll(widget.buttonSize))
         : widget.dialogTheme?.buttonStyle;
 
     final isWrappable = widget.dialogTheme?.isWrappable ?? false;
@@ -403,7 +403,7 @@ class TextButtonWithIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final scale = MediaQuery.maybeOf(context)?.textScaleFactor ?? 1;
+    final scale = MediaQuery.maybeTextScalerOf(context)?.scale(1) ?? 1;
     final gap = scale <= 1 ? 8.0 : lerpDouble(8, 4, math.min(scale - 1, 1))!;
     final buttonStyle = TextButtonTheme.of(context).style;
     final shape = buttonStyle?.shape?.resolve({}) ??

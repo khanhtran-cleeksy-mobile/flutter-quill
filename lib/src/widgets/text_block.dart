@@ -221,7 +221,7 @@ class EditableTextBlock extends StatelessWidget {
         indentLevelCounts: indentLevelCounts,
         count: count,
         style: defaultStyles.code!.style
-            .copyWith(color: defaultStyles.code!.style.color!.withOpacity(0.4)),
+            .copyWith(color: defaultStyles.code!.style.color!.withValues(alpha:0.4)),
         width: fontSize * 2,
         attrs: attrs,
         padding: fontSize,

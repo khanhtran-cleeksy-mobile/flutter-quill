@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
+import 'package:flutter/services.dart';
 
 import '../models/documents/attribute.dart';
 import '../models/documents/nodes/leaf.dart';
@@ -108,7 +108,7 @@ class EditorTextSelectionGestureDetectorBuilder {
   ///  * [EditorTextSelectionGestureDetector.onTapDown],
   ///  which triggers this callback.
   @protected
-  void onTapDown(TapDownDetails details) {
+  void onTapDown(TapDragDownDetails details) {
     renderEditor!.handleTapDown(details);
     // The selection overlay should only be shown when the user is interacting
     // through a touch screen (via either a finger or a stylus).
@@ -144,6 +144,7 @@ class EditorTextSelectionGestureDetectorBuilder {
         null,
         SelectionChangedCause.forcePress,
       );
+      editor!.showToolbar();
     }
   }
 
@@ -180,7 +181,7 @@ class EditorTextSelectionGestureDetectorBuilder {
   ///  * [EditorTextSelectionGestureDetector.onSingleTapUp], which triggers
   ///    this callback.
   @protected
-  void onSingleTapUp(TapUpDetails details) {
+  void onSingleTapUp(TapDragUpDetails details) {
     if (delegate.selectionEnabled) {
       renderEditor!.selectWordEdge(SelectionChangedCause.tap);
     }
@@ -188,7 +189,8 @@ class EditorTextSelectionGestureDetectorBuilder {
 
   /// onSingleTapUp for mouse right click
   @protected
-  void onSecondarySingleTapUp(TapUpDetails details) {
+  void onSecondarySingleTapUp() {
+    renderEditor!.selectWord(SelectionChangedCause.tap);
     // added to show toolbar by right click
     if (shouldShowSelectionToolbar) {
       editor!.showToolbar();
@@ -271,20 +273,12 @@ class EditorTextSelectionGestureDetectorBuilder {
   ///  * [EditorTextSelectionGestureDetector.onDoubleTapDown],
   ///  which triggers this callback.
   @protected
-  void onDoubleTapDown(TapDownDetails details) {
+  void onDoubleTapDown(TapDragDownDetails details) {
     if (delegate.selectionEnabled) {
-      renderEditor!.selectWord(SelectionChangedCause.tap);
-      // allow the selection to get updated before trying to bring up
-      // toolbars.
-      //
-      // if double tap happens on an editor that doesn't
-      // have focus, selection hasn't been set when the toolbars
-      // get added
-      SchedulerBinding.instance.addPostFrameCallback((_) {
-        if (shouldShowSelectionToolbar) {
-          editor!.showToolbar();
-        }
-      });
+      renderEditor!.selectWord(SelectionChangedCause.doubleTap);
+      if (shouldShowSelectionToolbar) {
+        editor!.showToolbar();
+      }
     }
   }
 
@@ -297,7 +291,7 @@ class EditorTextSelectionGestureDetectorBuilder {
   ///  * [EditorTextSelectionGestureDetector.onDragSelectionStart],
   ///  which triggers this callback.
   @protected
-  void onDragSelectionStart(DragStartDetails details) {
+  void onDragSelectionStart(TapDragStartDetails details) {
     renderEditor!.handleDragStart(details);
   }
 
@@ -313,7 +307,7 @@ class EditorTextSelectionGestureDetectorBuilder {
   @protected
   void onDragSelectionUpdate(
       //DragStartDetails startDetails,
-      DragUpdateDetails updateDetails) {
+      TapDragUpdateDetails updateDetails) {
     renderEditor!.extendSelection(updateDetails.globalPosition,
         cause: SelectionChangedCause.drag);
   }
@@ -327,7 +321,7 @@ class EditorTextSelectionGestureDetectorBuilder {
   ///  * [EditorTextSelectionGestureDetector.onDragSelectionEnd],
   ///  which triggers this callback.
   @protected
-  void onDragSelectionEnd(DragEndDetails details) {
+  void onDragSelectionEnd(TapDragEndDetails details) {
     renderEditor!.handleDragEnd(details);
     if (isDesktop() &&
         delegate.selectionEnabled &&
@@ -337,33 +331,122 @@ class EditorTextSelectionGestureDetectorBuilder {
     }
   }
 
+  /// Handler for [TextSelectionGestureDetector.onTripleTapDown].
+  ///
+  /// By default, it selects a paragraph if
+  /// [TextSelectionGestureDetectorBuilderDelegate.selectionEnabled] is true
+  /// and shows the toolbar if necessary.
+  ///
+  /// See also:
+  ///
+  ///  * [TextSelectionGestureDetector.onTripleTapDown], which triggers this
+  ///    callback.
+  @protected
+  void onTripleTapDown(TapDragDownDetails details) {
+    if (!delegate.selectionEnabled) {
+      return;
+    }
+    _selectParagraphsInRange(
+      from: details.globalPosition,
+      cause: SelectionChangedCause.tap,
+    );
+
+    if (shouldShowSelectionToolbar) {
+      editor!.showToolbar();
+    }
+  }
+
+  // Selects the set of paragraphs in a document that intersect a given range of
+  // global positions.
+  void _selectParagraphsInRange(
+      {required Offset from,
+      required SelectionChangedCause cause,
+      Offset? to}) {
+    final TextBoundary paragraphBoundary =
+        ParagraphBoundary(editor!.textEditingValue.text);
+    _selectTextBoundariesInRange(
+        boundary: paragraphBoundary, from: from, to: to, cause: cause);
+  }
+
+  // Selects the set of text boundaries in a document that intersect a given
+  // range of global positions.
+  //
+  // The set of text boundaries selected are not strictly bounded by the range
+  // of global positions.
+  //
+  // The first and last endpoints of the selection will always be at the
+  // beginning and end of a text boundary respectively.
+  void _selectTextBoundariesInRange({
+    required TextBoundary boundary,
+    required Offset from,
+    required SelectionChangedCause cause,
+    Offset? to,
+  }) {
+    final fromPosition = renderEditor!.getPositionForOffset(from);
+    final fromRange = _moveToTextBoundary(fromPosition, boundary);
+    final toPosition =
+        to == null ? fromPosition : renderEditor!.getPositionForOffset(to);
+    final toRange = toPosition == fromPosition
+        ? fromRange
+        : _moveToTextBoundary(toPosition, boundary);
+    final isFromBoundaryBeforeToBoundary = fromRange.start < toRange.end;
+
+    final newSelection = isFromBoundaryBeforeToBoundary
+        ? TextSelection(baseOffset: fromRange.start, extentOffset: toRange.end)
+        : TextSelection(baseOffset: fromRange.end, extentOffset: toRange.start);
+
+    renderEditor!.handleSelectionChange(
+      newSelection,
+      cause,
+    );
+  }
+
+  // Returns the location of a text boundary at `extent`. When `extent` is at
+  // the end of the text, returns the previous text boundary's location.
+  TextRange _moveToTextBoundary(
+      TextPosition extent, TextBoundary textBoundary) {
+    assert(extent.offset >= 0);
+    // Use extent.offset - 1 when `extent` is at the end of the text to retrieve
+    // the previous text boundary's location.
+    final start = textBoundary.getLeadingTextBoundaryAt(
+          extent.offset == editor!.textEditingValue.text.length
+              ? extent.offset - 1
+              : extent.offset,
+        ) ??
+        0;
+    final trailing = textBoundary.getTrailingTextBoundaryAt(extent.offset);
+    final end =
+        trailing != null ? trailing - 1 : editor!.textEditingValue.text.length;
+    return TextRange(start: start, end: end);
+  }
+
   /// Returns a [EditorTextSelectionGestureDetector] configured with
   /// the handlers provided by this builder.
   ///
   /// The [child] or its subtree should contain [EditableText].
-  Widget build(
-      {required HitTestBehavior behavior,
-      required Widget child,
-      Key? key,
-      bool detectWordBoundary = true}) {
-    return EditorTextSelectionGestureDetector(
+  Widget build({
+    required HitTestBehavior behavior,
+    required Widget child,
+    Key? key,
+  }) {
+    return TextSelectionGestureDetector(
         key: key,
         onTapDown: onTapDown,
         onForcePressStart:
             delegate.forcePressEnabled ? onForcePressStart : null,
         onForcePressEnd: delegate.forcePressEnabled ? onForcePressEnd : null,
+        onSecondaryTap: onSecondarySingleTapUp,
         onSingleTapUp: onSingleTapUp,
         onSingleTapCancel: onSingleTapCancel,
         onSingleLongTapStart: onSingleLongTapStart,
         onSingleLongTapMoveUpdate: onSingleLongTapMoveUpdate,
         onSingleLongTapEnd: onSingleLongTapEnd,
         onDoubleTapDown: onDoubleTapDown,
-        onSecondarySingleTapUp: onSecondarySingleTapUp,
         onDragSelectionStart: onDragSelectionStart,
         onDragSelectionUpdate: onDragSelectionUpdate,
         onDragSelectionEnd: onDragSelectionEnd,
+        onTripleTapDown: onTripleTapDown,
         behavior: behavior,
-        detectWordBoundary: detectWordBoundary,
         child: child);
   }
 }

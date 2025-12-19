@@ -133,7 +133,7 @@ class RichTextProxy extends SingleChildRenderObjectWidget {
       required this.textDirection,
       required this.locale,
       required this.strutStyle,
-      this.textScaleFactor = 1.0,
+      this.textScaleFactor = TextScaler.noScaling,
       this.textWidthBasis = TextWidthBasis.parent,
       this.textHeightBehavior,
       Key? key})
@@ -142,7 +142,7 @@ class RichTextProxy extends SingleChildRenderObjectWidget {
   final TextStyle textStyle;
   final TextAlign textAlign;
   final TextDirection textDirection;
-  final double textScaleFactor;
+  final TextScaler textScaleFactor;
   final Locale locale;
   final StrutStyle strutStyle;
   final TextWidthBasis textWidthBasis;
@@ -184,7 +184,7 @@ class RenderParagraphProxy extends RenderProxyBox
     TextStyle textStyle,
     TextAlign textAlign,
     TextDirection textDirection,
-    double textScaleFactor,
+      TextScaler textScaler,
     StrutStyle strutStyle,
     Locale locale,
     TextWidthBasis textWidthBasis,
@@ -193,7 +193,7 @@ class RenderParagraphProxy extends RenderProxyBox
             text: TextSpan(text: ' ', style: textStyle),
             textAlign: textAlign,
             textDirection: textDirection,
-            textScaleFactor: textScaleFactor,
+            textScaler: textScaler,
             strutStyle: strutStyle,
             locale: locale,
             textWidthBasis: textWidthBasis,
@@ -226,11 +226,11 @@ class RenderParagraphProxy extends RenderProxyBox
     markNeedsLayout();
   }
 
-  set textScaleFactor(double value) {
-    if (_prototypePainter.textScaleFactor == value) {
+  set textScaleFactor(TextScaler value) {
+    if (_prototypePainter.textScaler == value) {
       return;
     }
-    _prototypePainter.textScaleFactor = value;
+    _prototypePainter.textScaler = value;
     markNeedsLayout();
   }
 
