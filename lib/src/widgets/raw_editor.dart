@@ -38,6 +38,7 @@ import 'proxy.dart';
 import 'quill_single_child_scroll_view.dart';
 import 'raw_editor/raw_editor_state_selection_delegate_mixin.dart';
 import 'raw_editor/raw_editor_state_text_input_client_mixin.dart';
+import 'raw_system_context_menu.dart';
 import 'text_block.dart';
 import 'text_line.dart';
 import 'text_selection.dart';
@@ -149,16 +150,15 @@ class RawEditor extends StatefulWidget {
     BuildContext context,
     RawEditorState state,
   ) {
-    // // If supported, show the system context menu.
-    // if (SystemContextMenu.isSupported(context)) {
-    //   return TextFieldTapRegion(
-    //     child: RawSystemContextMenu.editableText(
-    //       editableTextState: state,
-    //     ),
-    //   );
-    // }
-    // // Otherwise, show the flutter-rendered context menu for the current
-    // // platform.
+    // If supported, show the system context menu.
+    if (SystemContextMenu.isSupported(context)) {
+      return RawSystemContextMenu.editableText(
+        editableTextState: state,
+        items: state.iosSystemContextMenuButtonItems,
+      );
+    }
+    // Otherwise, show the flutter-rendered context menu for the current
+    // platform.
     return _SelectionToolbarWrapper(
       child: AdaptiveTextSelectionToolbar.buttonItems(
         buttonItems: state.contextMenuButtonItems,
@@ -408,6 +408,56 @@ class RawEditorState extends EditorState
       onSearchWeb: searchWebEnabled
           ? () => searchWebForSelection(SelectionChangedCause.toolbar)
           : null,
+    );
+  }
+
+  List<IOSSystemContextMenuItem> get iosSystemContextMenuButtonItems {
+    return <IOSSystemContextMenuItem>[
+      if (copyEnabled && isSelectedText)
+        IOSSystemContextMenuItemCustom(
+          title: getButtonTitle(ContextMenuButtonType.copy),
+          onPressed: () => copySelection(SelectionChangedCause.toolbar),
+        ),
+      if (cutEnabled && isSelectedText)
+        IOSSystemContextMenuItemCustom(
+          title: getButtonTitle(ContextMenuButtonType.cut),
+          onPressed: () => cutSelection(SelectionChangedCause.toolbar),
+        ),
+      if (pasteEnabled)
+        IOSSystemContextMenuItemCustom(
+          title: getButtonTitle(ContextMenuButtonType.paste),
+          onPressed: () => pasteText(SelectionChangedCause.toolbar),
+        ),
+      if (selectAllEnabled)
+        IOSSystemContextMenuItemCustom(
+          title: getButtonTitle(ContextMenuButtonType.selectAll),
+          onPressed: () => selectAll(SelectionChangedCause.toolbar),
+        ),
+      if (lookUpEnabled)
+        IOSSystemContextMenuItemCustom(
+          title: getButtonTitle(ContextMenuButtonType.lookUp),
+          onPressed: () => lookUpSelection(SelectionChangedCause.toolbar),
+        ),
+      if (searchWebEnabled)
+        IOSSystemContextMenuItemCustom(
+          title: getButtonTitle(ContextMenuButtonType.searchWeb),
+          onPressed: () => searchWebForSelection(SelectionChangedCause.toolbar),
+        ),
+      if (_liveTextEnabled)
+        IOSSystemContextMenuItemCustom(
+          title: getButtonTitle(ContextMenuButtonType.liveTextInput),
+          onPressed: () => _startLiveTextInput(SelectionChangedCause.toolbar),
+        ),
+    ];
+  }
+
+  String getButtonTitle(ContextMenuButtonType type) {
+    return AdaptiveTextSelectionToolbar.getButtonLabel(
+      context,
+      ContextMenuButtonItem(
+        onPressed: () {},
+        type: type,
+      ),
     );
   }
 
@@ -1244,7 +1294,8 @@ class RawEditorState extends EditorState
 
   void _updateOrDisposeSelectionOverlayIfNeeded() {
     if (_selectionOverlay != null) {
-      if (!_hasFocus || (selection.isCollapsed && textEditingValue.text != '\n')) {
+      if (!_hasFocus ||
+          (selection.isCollapsed && textEditingValue.text != '\n')) {
         if (!selection.isCollapsed) {
           textEditingValue = textEditingValue.copyWith(
             selection: TextSelection.collapsed(
