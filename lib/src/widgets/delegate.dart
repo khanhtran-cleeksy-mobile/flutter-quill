@@ -304,7 +304,6 @@ class EditorTextSelectionGestureDetectorBuilder {
   ///
   ///  * [EditorTextSelectionGestureDetector.onDragSelectionUpdate],
   ///  which triggers this callback./lib/src/material/text_field.dart
-  @protected
   void onDragSelectionUpdate(
       //DragStartDetails startDetails,
       TapDragUpdateDetails updateDetails) {

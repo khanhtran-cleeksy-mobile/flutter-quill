@@ -583,16 +583,17 @@ class QuillEditorState extends State<QuillEditor>
       keyboardType: widget.keyboardType,
       textInputAction: widget.textInputAction,
       onEditingComplete: widget.onEditingComplete,
+      selectionGestureDetectorBuilder: selectionEnabled
+          ? (child) => _selectionGestureDetectorBuilder.build(
+                behavior: HitTestBehavior.translucent,
+                child: child,
+              )
+          : null,
     );
 
     final editor = I18n(
       initialLocale: widget.locale,
-      child: selectionEnabled
-          ? _selectionGestureDetectorBuilder.build(
-        behavior: HitTestBehavior.translucent,
-        child: child,
-      )
-          : child,
+      child: child,
     );
 
     if (kIsWeb) {
@@ -1866,6 +1867,9 @@ class RenderEditableContainerBox extends RenderBox
     // but minHeight > content height and tap was under content
     return lastChild!;
   }
+
+  @override
+  bool hitTestSelf(Offset position) => true;
 
   @override
   void setupParentData(RenderBox child) {

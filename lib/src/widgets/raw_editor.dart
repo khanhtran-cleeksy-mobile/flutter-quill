@@ -91,6 +91,7 @@ class RawEditor extends StatefulWidget {
     this.keyboardType,
     this.textInputAction,
     this.onEditingComplete,
+    this.selectionGestureDetectorBuilder,
   })  : assert(maxHeight == null || maxHeight > 0, 'maxHeight cannot be null'),
         assert(minHeight == null || minHeight >= 0, 'minHeight cannot be null'),
         assert(maxHeight == null || minHeight == null || maxHeight >= minHeight,
@@ -145,6 +146,8 @@ class RawEditor extends StatefulWidget {
   final TextInputAction? textInputAction;
 
   final VoidCallback? onEditingComplete;
+
+  final Widget Function(Widget child)? selectionGestureDetectorBuilder;
 
   static Widget defaultContextMenuBuilder(
     BuildContext context,
@@ -622,33 +625,42 @@ class RawEditorState extends EditorState
           '[{"attributes":{"placeholder":true},"insert":"$raw\\n"}]'));
     }
 
-    Widget child = CompositedTransformTarget(
-      link: _toolbarLayerLink,
-      child: Semantics(
-        child: MouseRegion(
-          cursor: SystemMouseCursors.text,
-          child: _Editor(
-            key: _editorKey,
-            document: _doc,
-            selection: controller.selection,
-            hasFocus: _hasFocus,
-            scrollable: widget.scrollable,
-            cursorController: _cursorCont,
-            textDirection: _textDirection,
-            startHandleLayerLink: _startHandleLayerLink,
-            endHandleLayerLink: _endHandleLayerLink,
-            onSelectionChanged: _handleSelectionChanged,
-            onSelectionCompleted: _handleSelectionCompleted,
-            scrollBottomInset: widget.scrollBottomInset,
-            padding: widget.padding,
-            maxContentWidth: widget.maxContentWidth,
-            floatingCursorDisabled: widget.floatingCursorDisabled,
-            children: _buildChildren(_doc, context),
+    Widget _buildInnerEditor(ViewportOffset? offset) {
+      Widget innerChild = CompositedTransformTarget(
+        link: _toolbarLayerLink,
+        child: Semantics(
+          child: MouseRegion(
+            cursor: SystemMouseCursors.text,
+            child: _Editor(
+              key: _editorKey,
+              offset: offset,
+              document: _doc,
+              selection: controller.selection,
+              hasFocus: _hasFocus,
+              scrollable: widget.scrollable,
+              cursorController: _cursorCont,
+              textDirection: _textDirection,
+              startHandleLayerLink: _startHandleLayerLink,
+              endHandleLayerLink: _endHandleLayerLink,
+              onSelectionChanged: _handleSelectionChanged,
+              onSelectionCompleted: _handleSelectionCompleted,
+              scrollBottomInset: widget.scrollBottomInset,
+              padding: widget.padding,
+              maxContentWidth: widget.maxContentWidth,
+              floatingCursorDisabled: widget.floatingCursorDisabled,
+              children: _buildChildren(_doc, context),
+            ),
           ),
         ),
-      ),
-    );
+      );
 
+      if (widget.selectionGestureDetectorBuilder != null) {
+        innerChild = widget.selectionGestureDetectorBuilder!(innerChild);
+      }
+      return innerChild;
+    }
+
+    Widget child;
     if (widget.scrollable) {
       /// Since [SingleChildScrollView] does not implement
       /// `computeDistanceToActualBaseline` it prevents the editor from
@@ -664,33 +676,11 @@ class RawEditorState extends EditorState
         child: QuillSingleChildScrollView(
           controller: _scrollController,
           physics: widget.scrollPhysics,
-          viewportBuilder: (_, offset) => CompositedTransformTarget(
-            link: _toolbarLayerLink,
-            child: MouseRegion(
-              cursor: SystemMouseCursors.text,
-              child: _Editor(
-                key: _editorKey,
-                offset: offset,
-                document: _doc,
-                selection: controller.selection,
-                hasFocus: _hasFocus,
-                scrollable: widget.scrollable,
-                textDirection: _textDirection,
-                startHandleLayerLink: _startHandleLayerLink,
-                endHandleLayerLink: _endHandleLayerLink,
-                onSelectionChanged: _handleSelectionChanged,
-                onSelectionCompleted: _handleSelectionCompleted,
-                scrollBottomInset: widget.scrollBottomInset,
-                padding: widget.padding,
-                maxContentWidth: widget.maxContentWidth,
-                cursorController: _cursorCont,
-                floatingCursorDisabled: widget.floatingCursorDisabled,
-                children: _buildChildren(_doc, context),
-              ),
-            ),
-          ),
+          viewportBuilder: (_, offset) => _buildInnerEditor(offset),
         ),
       );
+    } else {
+      child = _buildInnerEditor(null);
     }
 
     final constraints = widget.expands
@@ -1202,7 +1192,7 @@ class RawEditorState extends EditorState
   }
 
   bool _shouldShowSelectionHandles() {
-    return widget.showSelectionHandles && !controller.selection.isCollapsed;
+    return widget.showSelectionHandles;
   }
 
   @override
@@ -1296,8 +1286,7 @@ class RawEditorState extends EditorState
 
   void _updateOrDisposeSelectionOverlayIfNeeded() {
     if (_selectionOverlay != null) {
-      if (!_hasFocus ||
-          (selection.isCollapsed && textEditingValue.text != '\n')) {
+      if (!_hasFocus) {
         if (!selection.isCollapsed) {
           textEditingValue = textEditingValue.copyWith(
             selection: TextSelection.collapsed(
