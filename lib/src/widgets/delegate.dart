@@ -308,8 +308,10 @@ class EditorTextSelectionGestureDetectorBuilder {
   void onDragSelectionUpdate(
       //DragStartDetails startDetails,
       TapDragUpdateDetails updateDetails) {
-    renderEditor!.extendSelection(updateDetails.globalPosition,
-        cause: SelectionChangedCause.drag);
+    renderEditor!.selectPositionAt(
+      from: updateDetails.globalPosition,
+      cause: SelectionChangedCause.drag,
+    );
   }
 
   /// Handler for [EditorTextSelectionGestureDetector.onDragSelectionEnd].

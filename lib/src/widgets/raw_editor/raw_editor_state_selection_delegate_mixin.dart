@@ -137,9 +137,12 @@ mixin RawEditorStateSelectionDelegateMixin on EditorState
 
   @override
   void hideToolbar([bool hideHandles = true]) {
-    // If the toolbar is currently visible.
-    if (selectionOverlay?.toolbar != null) {
-      hideHandles ? selectionOverlay?.hide() : selectionOverlay?.hideToolbar();
+    if (hideHandles) {
+      // Hide the handles and the toolbar.
+      selectionOverlay?.hide();
+    } else if (selectionOverlay?.toolbar != null) {
+      // Hide only the toolbar but not the handles.
+      selectionOverlay?.hideToolbar();
     }
   }
 
@@ -160,5 +163,8 @@ mixin RawEditorStateSelectionDelegateMixin on EditorState
       widget.contextMenuBuilder != null && !widget.readOnly;
 
   @override
-  bool get selectAllEnabled => widget.contextMenuBuilder != null && textEditingValue.text != '\n';
+  bool get selectAllEnabled =>
+      widget.contextMenuBuilder != null &&
+      textEditingValue.text != '\n' &&
+      textEditingValue.selection.isCollapsed;
 }

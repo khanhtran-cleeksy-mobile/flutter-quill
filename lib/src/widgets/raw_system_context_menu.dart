@@ -49,6 +49,7 @@ class RawSystemContextMenu extends StatefulWidget {
   const RawSystemContextMenu._({
     required this.anchor,
     required this.items,
+    this.onSystemHide,
     super.key,
   });
 
@@ -72,6 +73,7 @@ class RawSystemContextMenu extends StatefulWidget {
         ),
       ),
       items: items ?? getDefaultItems(editableTextState),
+      onSystemHide: () => editableTextState.hideToolbar(false),
     );
   }
 
@@ -96,14 +98,14 @@ class RawSystemContextMenu extends StatefulWidget {
   ///  * [IOSSystemContextMenuItemCustom], which creates custom menu items.
   final List<IOSSystemContextMenuItem> items;
 
-  // /// Called when the system hides this context menu.
-  // ///
-  // /// For example, tapping outside of the context menu typically causes the
-  // /// system to hide the menu.
-  // ///
-  // /// This is not called when showing a new system context menu causes another
-  // /// to be hidden.
-  // final VoidCallback? onSystemHide;
+  /// Called when the system hides this context menu.
+  ///
+  /// For example, tapping outside of the context menu typically causes the
+  /// system to hide the menu.
+  ///
+  /// This is not called when showing a new system context menu causes another
+  /// to be hidden.
+  final VoidCallback? onSystemHide;
 
   /// Whether the current device supports showing the system context menu.
   ///
@@ -164,7 +166,7 @@ class _RawSystemContextMenuState extends State<RawSystemContextMenu> {
   @override
   void initState() {
     super.initState();
-    _systemContextMenuController = SystemContextMenuController();
+    _systemContextMenuController = SystemContextMenuController(onSystemHide: widget.onSystemHide);
   }
 
   @override
@@ -179,7 +181,7 @@ class _RawSystemContextMenuState extends State<RawSystemContextMenu> {
 
     if (widget.items.isNotEmpty) {
       final localizations = WidgetsLocalizations.of(context);
-      final itemDatas = widget.items
+      final  itemDatas = widget.items
           .map((item) => item.getData(localizations))
           .toList();
       _systemContextMenuController.showWithItems(widget.anchor, itemDatas);

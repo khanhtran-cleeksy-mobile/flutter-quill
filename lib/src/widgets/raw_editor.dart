@@ -152,9 +152,11 @@ class RawEditor extends StatefulWidget {
   ) {
     // If supported, show the system context menu.
     if (SystemContextMenu.isSupported(context)) {
-      return RawSystemContextMenu.editableText(
-        editableTextState: state,
-        items: state.iosSystemContextMenuButtonItems,
+      return TextFieldTapRegion(
+        child: RawSystemContextMenu.editableText(
+          editableTextState: state,
+          items: state.iosSystemContextMenuButtonItems,
+        ),
       );
     }
     // Otherwise, show the flutter-rendered context menu for the current

@@ -488,7 +488,7 @@ class QuillEditorState extends State<QuillEditor>
     _editorKey = widget.editorKey ?? GlobalKey<EditorState>();
     _selectionGestureDetectorBuilder =
         _QuillEditorSelectionGestureDetectorBuilder(
-            this, widget.detectWordBoundary);
+            this);
   }
 
   @override
@@ -642,20 +642,14 @@ class QuillEditorState extends State<QuillEditor>
 
   @override
   bool get selectionEnabled => widget.enableInteractiveSelection;
-
-  void _requestKeyboard() {
-    _editorKey.currentState!.requestKeyboard();
-  }
 }
 
 class _QuillEditorSelectionGestureDetectorBuilder
     extends EditorTextSelectionGestureDetectorBuilder {
-  _QuillEditorSelectionGestureDetectorBuilder(this._state,
-      this._detectWordBoundary)
-      : super(delegate: _state, detectWordBoundary: _detectWordBoundary);
+  _QuillEditorSelectionGestureDetectorBuilder(this._state)
+      : super(delegate: _state);
 
   final QuillEditorState _state;
-  final bool _detectWordBoundary;
 
   @override
   void onForcePressStart(ForcePressDetails details) {
@@ -728,97 +722,34 @@ class _QuillEditorSelectionGestureDetectorBuilder
 
   @override
   void onSingleTapUp(TapDragUpDetails details) {
-    if (_state.widget.onTapUp != null &&
-        renderEditor != null &&
-        _state.widget.onTapUp!(details, renderEditor!.getPositionForOffset)) {
+    if (!delegate.selectionEnabled) {
+      editor!.requestKeyboard();
       return;
     }
+    final  previousSelection =
+        renderEditor?.selection ?? editor!.textEditingValue.selection;
+    final textPosition = renderEditor!.getPositionForOffset(
+      details.globalPosition,
+    );
+    final  isAffinityTheSame = textPosition.affinity == previousSelection.affinity;
 
-    try {
-      if (delegate.selectionEnabled) {
-        final _platform = Theme
-            .of(_state.context)
-            .platform;
-        if (isAppleOS(_platform) || isDesktop()) {
-          // added isDesktop() to enable extend selection in Windows platform
-          switch (details.kind) {
-            case PointerDeviceKind.mouse:
-            case PointerDeviceKind.stylus:
-            case PointerDeviceKind.invertedStylus:
-            // Precise devices should place the cursor at a precise position.
-            // If `Shift` key is pressed then
-            // extend current selection instead.
-              if (isShiftClick(details.kind)) {
-                renderEditor!
-                  ..extendSelection(details.globalPosition,
-                      cause: SelectionChangedCause.tap)
-                  ..onSelectionCompleted();
-              } else {
-                renderEditor!
-                  ..selectPosition(cause: SelectionChangedCause.tap)
-                  ..onSelectionCompleted();
-              }
-
-              break;
-            case PointerDeviceKind.touch:
-            case PointerDeviceKind.unknown:
-            // On macOS/iOS/iPadOS a touch tap places the cursor at the edge
-            // of the word.
-              if (_detectWordBoundary) {
-                renderEditor!
-                  ..selectWordEdge(SelectionChangedCause.tap)
-                  ..onSelectionCompleted();
-              } else {
-                renderEditor!
-                  ..selectPosition(cause: SelectionChangedCause.tap)
-                  ..onSelectionCompleted();
-              }
-              final previousSelection = renderEditor!.selection;
-              final textPosition = renderEditor!.getPositionForOffset(
-                details.globalPosition,
-              );
-              final isAffinityTheSame =
-                  textPosition.affinity == previousSelection.affinity;
-              if (((_positionWasOnSelectionExclusive(textPosition) &&
-                  !previousSelection.isCollapsed) ||
-                  (_positionWasOnSelectionInclusive(textPosition) &&
-                      previousSelection.isCollapsed &&
-                      isAffinityTheSame)) &&
-                  renderEditor!.hasFocus) {
-                editor!.toggleToolbar(false);
-              } else {
-                renderEditor!.selectWordEdge(SelectionChangedCause.tap);
-                if (previousSelection == editor!.textEditingValue.selection &&
-                    renderEditor!.hasFocus) {
-                  editor!.toggleToolbar(false);
-                } else {
-                  editor!.hideToolbar(false);
-                }
-              }
-              break;
-            case PointerDeviceKind.trackpad:
-              break;
-          }
-        } else {
-          editor!.hideToolbar();
-          renderEditor!
-            ..selectPosition(cause: SelectionChangedCause.tap)
-            ..onSelectionCompleted();
-        }
+    if (((_positionWasOnSelectionExclusive(textPosition) &&
+        !previousSelection.isCollapsed) ||
+        (_positionWasOnSelectionInclusive(textPosition) &&
+            previousSelection.isCollapsed &&
+            isAffinityTheSame)) &&
+        renderEditor!.hasFocus) {
+      editor!.toggleToolbar(false);
+    } else {
+      renderEditor!.selectWordEdge( SelectionChangedCause.tap);
+      if (previousSelection == editor!.textEditingValue.selection &&
+          renderEditor!.hasFocus) {
+        editor!.toggleToolbar(false);
+      } else {
+        editor!.hideToolbar(false);
       }
-    } finally {
-      _state._requestKeyboard();
     }
-  }
-
-  bool _positionWasOnSelectionExclusive(TextPosition textPosition) {
-    final TextSelection? selection = renderEditor!.selection;
-    if (selection == null) {
-      return false;
-    }
-
-    return selection.start < textPosition.offset &&
-        selection.end > textPosition.offset;
+    editor!.requestKeyboard();
   }
 
   bool _positionWasOnSelectionInclusive(TextPosition textPosition) {
@@ -827,8 +758,15 @@ class _QuillEditorSelectionGestureDetectorBuilder
       return false;
     }
 
-    return selection.start <= textPosition.offset &&
-        selection.end >= textPosition.offset;
+    return selection.start <= textPosition.offset && selection.end >= textPosition.offset;
+  }
+  bool _positionWasOnSelectionExclusive(TextPosition textPosition) {
+    final TextSelection? selection = renderEditor!.selection;
+    if (selection == null) {
+      return false;
+    }
+
+    return selection.start < textPosition.offset && selection.end > textPosition.offset;
   }
 
   @override

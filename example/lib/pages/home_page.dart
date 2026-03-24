@@ -106,11 +106,22 @@ class _HomePageState extends State<HomePage> {
           ),
           child: _buildMenuBar(context),
         ),
-        body: Container(
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.black87),
+        body: Column(
+          children: [
+            TextFormField(
+              minLines: 3,
+              maxLines: 5,
+              keyboardType: TextInputType.multiline,
             ),
-            child: _buildWelcomeEditor(context)),
+            Expanded(
+              child: Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.black87),
+                  ),
+                  child: _buildWelcomeEditor(context)),
+            ),
+          ],
+        ),
       ),
     );
   }

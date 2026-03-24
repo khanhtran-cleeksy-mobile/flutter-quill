@@ -310,6 +310,10 @@ class EditorTextSelectionOverlay {
           value.copyWith(selection: currSelection, composing: TextRange.empty),
           SelectionChangedCause.drag)
       ..bringIntoView(textPosition);
+
+    if (!_selection.isCollapsed && toolbar == null) {
+      showToolbar();
+    }
   }
 
   void markNeedsBuild([Duration? duration]) {
