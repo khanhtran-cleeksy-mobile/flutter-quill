@@ -258,11 +258,10 @@ class EditorTextSelectionOverlay {
           selectionControls: selectionCtrls,
           position: position,
           dragStartBehavior: dragStartBehavior,
-          // onDragUpdate: (value) {
-          //   print("onDragUpdate");
-          //   showMagnifier(value);
-          // },
-          // onDragEnd: hideMagnifier,
+          onDragUpdate: (value) {
+            showMagnifier(value, position);
+          },
+          onDragEnd: hideMagnifier,
         ));
   }
 
@@ -352,14 +351,20 @@ class EditorTextSelectionOverlay {
   }
 
   /// Shows the magnifier at the given [positionToShow].
-  void showMagnifier(Offset positionToShow) {
+  void showMagnifier(Offset positionToShow,
+      [_TextSelectionHandlePosition? position]) {
     if (magnifierConfiguration == TextMagnifierConfiguration.disabled) {
       return;
     }
 
     final selection = value.selection;
-    final isEndHandle = selection.extentOffset >= selection.baseOffset;
-    final handlePosition = isEndHandle ? selection.extent : selection.base;
+    final handlePosition = position == null
+        ? (selection.extentOffset >= selection.baseOffset
+            ? selection.extent
+            : selection.base)
+        : (position == _TextSelectionHandlePosition.START
+            ? selection.base
+            : selection.extent);
 
     final caretRect = renderObject.getLocalRectForCaret(handlePosition);
     final fieldBounds = Offset.zero & renderObject.size;
@@ -402,6 +407,9 @@ class EditorTextSelectionOverlay {
     );
 
     _magnifierInfo.value = magnifierInfo;
+    if (toolbar != null) {
+      hideToolbar();
+    }
 
     if (_magnifierController.shown) {
       return;
@@ -433,6 +441,9 @@ class EditorTextSelectionOverlay {
     }
 
     _magnifierController.hide();
+    if (toolbar == null && !_selection.isCollapsed) {
+      showToolbar();
+    }
   }
 
   /// Builds the handles by inserting them into the [context]'s overlay.
@@ -470,8 +481,13 @@ class _TextSelectionHandleOverlay extends StatefulWidget {
     required this.onSelectionHandleChanged,
     required this.selectionControls,
     this.dragStartBehavior = DragStartBehavior.start,
+    this.onDragUpdate,
+    this.onDragEnd,
     Key? key,
   }) : super(key: key);
+
+  final ValueChanged<Offset>? onDragUpdate;
+  final VoidCallback? onDragEnd;
 
   final TextSelection selection;
   final _TextSelectionHandlePosition position;
@@ -557,6 +573,7 @@ class _TextSelectionHandleOverlayState
         widget.renderObject.getPositionForOffset(details.globalPosition);
     if (widget.selection.isCollapsed) {
       widget.onSelectionHandleChanged(TextSelection.fromPosition(position));
+      widget.onDragUpdate?.call(details.globalPosition);
       return;
     }
 
@@ -589,6 +606,11 @@ class _TextSelectionHandleOverlayState
     }
 
     widget.onSelectionHandleChanged(newSelection);
+    widget.onDragUpdate?.call(details.globalPosition);
+  }
+
+  void _handleDragEnd() {
+    widget.onDragEnd?.call();
   }
 
 
@@ -665,6 +687,8 @@ class _TextSelectionHandleOverlayState
             behavior: HitTestBehavior.translucent,
             onPanStart: _handleDragStart,
             onPanUpdate: _handleDragUpdate,
+            onPanEnd: (_) => _handleDragEnd(),
+            onPanCancel: _handleDragEnd,
             child: Padding(
               padding: EdgeInsets.only(
                 left: padding.left,

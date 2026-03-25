@@ -294,6 +294,7 @@ class EditorTextSelectionGestureDetectorBuilder {
   ///  which triggers this callback.
   @protected
   void onDragSelectionStart(TapDragStartDetails details) {
+    print(details);
     renderEditor!.onDragSelectionStart(details);
     editor!.showMagnifier(details.globalPosition);
   }
@@ -308,8 +309,7 @@ class EditorTextSelectionGestureDetectorBuilder {
   ///  * [EditorTextSelectionGestureDetector.onDragSelectionUpdate],
   ///  which triggers this callback./lib/src/material/text_field.dart
   @protected
-  void onDragSelectionUpdate(
-      TapDragUpdateDetails updateDetails) {
+  void onDragSelectionUpdate(TapDragUpdateDetails updateDetails) {
     renderEditor!.onDragSelectionUpdate(updateDetails);
     editor!.showMagnifier(updateDetails.globalPosition);
   }
