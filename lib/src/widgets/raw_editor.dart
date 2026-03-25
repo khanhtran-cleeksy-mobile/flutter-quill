@@ -448,11 +448,11 @@ class RawEditorState extends EditorState
           title: getButtonTitle(ContextMenuButtonType.searchWeb),
           onPressed: () => searchWebForSelection(SelectionChangedCause.toolbar),
         ),
-      if (_liveTextEnabled)
-        IOSSystemContextMenuItemCustom(
-          title: getButtonTitle(ContextMenuButtonType.liveTextInput),
-          onPressed: () => _startLiveTextInput(SelectionChangedCause.toolbar),
-        ),
+      // if (_liveTextEnabled)
+      //   IOSSystemContextMenuItemCustom(
+      //     title: getButtonTitle(ContextMenuButtonType.liveTextInput),
+      //     onPressed: () => _startLiveTextInput(SelectionChangedCause.toolbar),
+      //   ),
     ];
   }
 
