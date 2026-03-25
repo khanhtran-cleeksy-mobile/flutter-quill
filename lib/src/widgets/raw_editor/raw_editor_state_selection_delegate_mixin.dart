@@ -10,6 +10,9 @@ import '../editor.dart';
 
 mixin RawEditorStateSelectionDelegateMixin on EditorState
     implements TextSelectionDelegate {
+  /// Detects whether the clipboard can paste.
+   ClipboardStatusNotifier get clipboardStatus;
+
   @override
   TextEditingValue get textEditingValue {
     return widget.controller.plainTextEditingValue;
@@ -153,7 +156,10 @@ mixin RawEditorStateSelectionDelegateMixin on EditorState
   }
 
   @override
-  bool get cutEnabled => widget.contextMenuBuilder != null && !widget.readOnly;
+  bool get cutEnabled =>
+      widget.contextMenuBuilder != null &&
+      !widget.readOnly &&
+      clipboardStatus.value == ClipboardStatus.pasteable;
 
   @override
   bool get copyEnabled => widget.contextMenuBuilder != null;

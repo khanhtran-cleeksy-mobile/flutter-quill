@@ -439,20 +439,11 @@ class RawEditorState extends EditorState
           onPressed: () => selectAll(SelectionChangedCause.toolbar),
         ),
       if (lookUpEnabled)
-        IOSSystemContextMenuItemCustom(
-          title: getButtonTitle(ContextMenuButtonType.lookUp),
-          onPressed: () => lookUpSelection(SelectionChangedCause.toolbar),
-        ),
+        const IOSSystemContextMenuItemLookUp(),
       if (searchWebEnabled)
-        IOSSystemContextMenuItemCustom(
-          title: getButtonTitle(ContextMenuButtonType.searchWeb),
-          onPressed: () => searchWebForSelection(SelectionChangedCause.toolbar),
-        ),
-      // if (_liveTextEnabled)
-      //   IOSSystemContextMenuItemCustom(
-      //     title: getButtonTitle(ContextMenuButtonType.liveTextInput),
-      //     onPressed: () => _startLiveTextInput(SelectionChangedCause.toolbar),
-      //   ),
+        const IOSSystemContextMenuItemSearchWeb(),
+      if (_liveTextEnabled)
+        const IOSSystemContextMenuItemLiveText()
     ];
   }
 
@@ -2000,6 +1991,9 @@ class RawEditorState extends EditorState
         textEditingValue.selection.textInside(textEditingValue.text).trim() !=
             '';
   }
+
+  @override
+  ClipboardStatusNotifier get clipboardStatus => _clipboardStatus;
 }
 
 class _Editor extends MultiChildRenderObjectWidget {
