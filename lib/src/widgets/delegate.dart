@@ -67,8 +67,10 @@ class EditorTextSelectionGestureDetectorBuilder {
   /// Creates a [EditorTextSelectionGestureDetectorBuilder].
   ///
   /// The [delegate] must not be null.
-  EditorTextSelectionGestureDetectorBuilder(
-      {required this.delegate, this.detectWordBoundary = true});
+  EditorTextSelectionGestureDetectorBuilder({
+    required this.delegate,
+    this.detectWordBoundary = true,
+  });
 
   /// The delegate for this [EditorTextSelectionGestureDetectorBuilder].
   ///
@@ -292,7 +294,8 @@ class EditorTextSelectionGestureDetectorBuilder {
   ///  which triggers this callback.
   @protected
   void onDragSelectionStart(TapDragStartDetails details) {
-    renderEditor!.handleDragStart(details);
+    renderEditor!.onDragSelectionStart(details);
+    editor!.showMagnifier(details.globalPosition);
   }
 
   /// Handler for [EditorTextSelectionGestureDetector.onDragSelectionUpdate].
@@ -304,13 +307,11 @@ class EditorTextSelectionGestureDetectorBuilder {
   ///
   ///  * [EditorTextSelectionGestureDetector.onDragSelectionUpdate],
   ///  which triggers this callback./lib/src/material/text_field.dart
+  @protected
   void onDragSelectionUpdate(
-      //DragStartDetails startDetails,
       TapDragUpdateDetails updateDetails) {
-    renderEditor!.selectPositionAt(
-      from: updateDetails.globalPosition,
-      cause: SelectionChangedCause.drag,
-    );
+    renderEditor!.onDragSelectionUpdate(updateDetails);
+    editor!.showMagnifier(updateDetails.globalPosition);
   }
 
   /// Handler for [EditorTextSelectionGestureDetector.onDragSelectionEnd].
@@ -330,6 +331,7 @@ class EditorTextSelectionGestureDetectorBuilder {
       // added to show selection copy/paste toolbar after drag to select
       editor!.showToolbar();
     }
+    editor!.hideMagnifier();
   }
 
   /// Handler for [TextSelectionGestureDetector.onTripleTapDown].

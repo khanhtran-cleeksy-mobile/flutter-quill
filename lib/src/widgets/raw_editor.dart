@@ -92,6 +92,7 @@ class RawEditor extends StatefulWidget {
     this.textInputAction,
     this.onEditingComplete,
     this.selectionGestureDetectorBuilder,
+    this.magnifierConfiguration = TextMagnifierConfiguration.disabled,
   })  : assert(maxHeight == null || maxHeight > 0, 'maxHeight cannot be null'),
         assert(minHeight == null || minHeight >= 0, 'minHeight cannot be null'),
         assert(maxHeight == null || minHeight == null || maxHeight >= minHeight,
@@ -148,6 +149,9 @@ class RawEditor extends StatefulWidget {
   final VoidCallback? onEditingComplete;
 
   final Widget Function(Widget child)? selectionGestureDetectorBuilder;
+
+  /// Configuration of magnifier.
+  final TextMagnifierConfiguration magnifierConfiguration;
 
   static Widget defaultContextMenuBuilder(
     BuildContext context,
@@ -1304,6 +1308,7 @@ class RawEditorState extends EditorState
         contextMenuBuilder: widget.contextMenuBuilder == null
             ? null
             : (context) => widget.contextMenuBuilder!(context, this),
+        magnifierConfiguration: widget.magnifierConfiguration,
       );
       _selectionOverlay!.handlesVisible = _shouldShowSelectionHandles();
       _selectionOverlay!.showHandles();

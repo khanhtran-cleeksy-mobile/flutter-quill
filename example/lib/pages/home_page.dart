@@ -136,7 +136,7 @@ class _HomePageState extends State<HomePage> {
         scrollController: ScrollController(),
         scrollable: true,
         focusNode: _focusNode,
-        autoFocus: true,
+        autoFocus: false,
         readOnly: false,
         placeholder: 'Add content',
         enableSelectionToolbar: isMobile(),
@@ -173,7 +173,7 @@ class _HomePageState extends State<HomePage> {
           readOnly: false,
           placeholder: 'Add content',
           expands: false,
-          padding: EdgeInsets.zero,
+          padding: EdgeInsets.zero,magnifierConfiguration: TextMagnifierConfiguration(),
           customStyles: DefaultStyles(
             h1: DefaultTextBlockStyle(
                 const TextStyle(

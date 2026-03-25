@@ -61,6 +61,18 @@ abstract class EditorState extends State<RawEditor>
       showToolbar();
     }
   }
+
+  void showMagnifier(Offset positionToShow) {
+    if (selectionOverlay != null ) {
+      selectionOverlay!.showMagnifier(positionToShow);
+    }
+  }
+
+  void hideMagnifier() {
+    if (selectionOverlay != null ) {
+      selectionOverlay!.hideMagnifier();
+    }
+  }
 }
 
 /// Base interface for editable render objects.
@@ -206,6 +218,7 @@ class QuillEditor extends StatefulWidget {
     this.keyboardType,
     this.textInputAction,
     this.onEditingComplete,
+    this.magnifierConfiguration,
   }) : super(key: key);
 
   factory QuillEditor.basic({
@@ -301,13 +314,15 @@ class QuillEditor extends StatefulWidget {
   /// When this is false, the text selection cannot be adjusted by
   /// the user, text cannot be copied, and the user cannot paste into
   /// the text field from the clipboard.
-  ///
   /// To disable just the selection toolbar, set enableSelectionToolbar
   /// to false.
   final bool enableInteractiveSelection;
 
   /// Whether to show the cut/copy/paste menu when selecting text.
   final bool enableSelectionToolbar;
+
+  /// The configuration for the magnifier.
+  final TextMagnifierConfiguration? magnifierConfiguration;
 
   /// The minimum height to be occupied by this editor.
   ///
@@ -583,6 +598,7 @@ class QuillEditorState extends State<QuillEditor>
       keyboardType: widget.keyboardType,
       textInputAction: widget.textInputAction,
       onEditingComplete: widget.onEditingComplete,
+      magnifierConfiguration: widget.magnifierConfiguration ?? TextMagnifier.adaptiveMagnifierConfiguration,
       selectionGestureDetectorBuilder: selectionEnabled
           ? (child) => _selectionGestureDetectorBuilder.build(
                 behavior: HitTestBehavior.translucent,
@@ -702,6 +718,7 @@ class _QuillEditorSelectionGestureDetectorBuilder
         SelectionChangedCause.longPress,
       );
     }
+    editor!.showMagnifier(details.globalPosition);
   }
 
   @override
@@ -794,10 +811,13 @@ class _QuillEditorSelectionGestureDetectorBuilder
         Feedback.forLongPress(_state.context);
       }
     }
+    editor!.showMagnifier(details.globalPosition);
   }
 
   @override
   void onSingleLongTapEnd(LongPressEndDetails details) {
+    editor!.hideMagnifier();
+
     if (_state.widget.onSingleLongTapEnd != null) {
       if (renderEditor != null) {
         if (_state.widget.onSingleLongTapEnd!(
@@ -1110,17 +1130,23 @@ class RenderEditor extends RenderEditableContainerBox
 
   bool _isDragging = false;
 
-  void handleDragStart(TapDragStartDetails details) {
+  void onDragSelectionStart(TapDragStartDetails details) {
     _isDragging = true;
 
     final newSelection = selectPositionAt(
       from: details.globalPosition,
       cause: SelectionChangedCause.drag,
     );
-
     if (newSelection == null) return;
     // Make sure to remember the origin for extend selection.
     _extendSelectionOrigin = newSelection;
+  }
+
+  void onDragSelectionUpdate(TapDragUpdateDetails updateDetails) {
+    selectPositionAt(
+      from: updateDetails.globalPosition,
+      cause: SelectionChangedCause.drag,
+    );
   }
 
   void handleDragEnd(TapDragEndDetails details) {
@@ -1227,7 +1253,7 @@ class RenderEditor extends RenderEditableContainerBox
     final toPosition = to == null ? null : getPositionForOffset(to);
 
     var baseOffset = fromPosition.offset;
-    var extentOffset = fromPosition.offset;
+    var extentOffset = math.min(fromPosition.offset, toPosition?.offset ?? fromPosition.offset);
     if (toPosition != null) {
       baseOffset = math.min(fromPosition.offset, toPosition.offset);
       extentOffset = math.max(fromPosition.offset, toPosition.offset);
@@ -1383,7 +1409,7 @@ class RenderEditor extends RenderEditableContainerBox
   double preferredLineHeight(TextPosition position) {
     final child = childAtPosition(position);
     return child.preferredLineHeight(
-        TextPosition(offset: position.offset - child.container.offset));
+        TextPosition(offset: position.offset - child.container.documentOffset));
   }
 
   @override
