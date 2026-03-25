@@ -294,7 +294,6 @@ class EditorTextSelectionGestureDetectorBuilder {
   ///  which triggers this callback.
   @protected
   void onDragSelectionStart(TapDragStartDetails details) {
-    print(details);
     renderEditor!.onDragSelectionStart(details);
     editor!.showMagnifier(details.globalPosition);
   }

@@ -173,7 +173,7 @@ class _HomePageState extends State<HomePage> {
           readOnly: false,
           placeholder: 'Add content',
           expands: false,
-          padding: EdgeInsets.zero,magnifierConfiguration: TextMagnifierConfiguration(),
+          padding: EdgeInsets.zero,
           customStyles: DefaultStyles(
             h1: DefaultTextBlockStyle(
                 const TextStyle(
