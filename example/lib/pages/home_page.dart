@@ -106,20 +106,42 @@ class _HomePageState extends State<HomePage> {
           ),
           child: _buildMenuBar(context),
         ),
-        body: Column(
+        // body: Column(
+        //   children: [
+        //     TextFormField(
+        //       minLines: 3,
+        //       maxLines: 5,
+        //       keyboardType: TextInputType.multiline,
+        //     ),
+        //     Expanded(
+        //       child: Container(
+        //           decoration: BoxDecoration(
+        //             border: Border.all(color: Colors.black87),
+        //           ),
+        //           child: _buildWelcomeEditor(context)),
+        //     ),
+        //   ],
+        // ),
+        body: PageView(
           children: [
-            TextFormField(
-              minLines: 3,
-              maxLines: 5,
-              keyboardType: TextInputType.multiline,
+            Column(
+              children: [
+                TextFormField(
+                  minLines: 3,
+                  maxLines: 5,
+                  keyboardType: TextInputType.multiline,
+                ),
+                Expanded(
+                  child: Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.black87),
+                      ),
+                      child: _buildWelcomeEditor(context)),
+                ),
+              ],
             ),
-            Expanded(
-              child: Container(
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.black87),
-                  ),
-                  child: _buildWelcomeEditor(context)),
-            ),
+            Placeholder(),
+            Placeholder(),
           ],
         ),
       ),

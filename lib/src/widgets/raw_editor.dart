@@ -442,12 +442,9 @@ class RawEditorState extends EditorState
           title: getButtonTitle(ContextMenuButtonType.selectAll),
           onPressed: () => selectAll(SelectionChangedCause.toolbar),
         ),
-      if (lookUpEnabled)
-        const IOSSystemContextMenuItemLookUp(),
-      if (searchWebEnabled)
-        const IOSSystemContextMenuItemSearchWeb(),
-      if (_liveTextEnabled)
-        const IOSSystemContextMenuItemLiveText()
+      if (lookUpEnabled) const IOSSystemContextMenuItemLookUp(),
+      if (searchWebEnabled) const IOSSystemContextMenuItemSearchWeb(),
+      if (_liveTextEnabled) const IOSSystemContextMenuItemLiveText()
     ];
   }
 
@@ -1675,6 +1672,7 @@ class RawEditorState extends EditorState
         ),
         cause,
       );
+      if (_selectionOverlay != null) _selectionOverlay!.showHandles();
 
       return;
     }

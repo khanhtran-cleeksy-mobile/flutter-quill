@@ -241,28 +241,29 @@ class EditorTextSelectionOverlay {
 
   Widget _buildHandle(
       BuildContext context, _TextSelectionHandlePosition position) {
+    final Widget handle;
     if (_selection.isCollapsed &&
         position == _TextSelectionHandlePosition.END) {
-      return Container();
+      handle = const SizedBox();
+    } else {
+      handle = _TextSelectionHandleOverlay(
+        onSelectionHandleChanged: (newSelection) {
+          _handleSelectionHandleChanged(newSelection, position);
+        },
+        startHandleLayerLink: startHandleLayerLink,
+        endHandleLayerLink: endHandleLayerLink,
+        renderObject: renderObject,
+        selection: _selection,
+        selectionControls: selectionCtrls,
+        position: position,
+        dragStartBehavior: dragStartBehavior,
+        onDragUpdate: (value) {
+          showMagnifier(value, position);
+        },
+        onDragEnd: hideMagnifier,
+      );
     }
-    return Visibility(
-        visible: handlesVisible,
-        child: _TextSelectionHandleOverlay(
-          onSelectionHandleChanged: (newSelection) {
-            _handleSelectionHandleChanged(newSelection, position);
-          },
-          startHandleLayerLink: startHandleLayerLink,
-          endHandleLayerLink: endHandleLayerLink,
-          renderObject: renderObject,
-          selection: _selection,
-          selectionControls: selectionCtrls,
-          position: position,
-          dragStartBehavior: dragStartBehavior,
-          onDragUpdate: (value) {
-            showMagnifier(value, position);
-          },
-          onDragEnd: hideMagnifier,
-        ));
+    return TextFieldTapRegion(child: ExcludeSemantics(child: handle));
   }
 
   /// Updates the overlay after the selection has changed.
@@ -379,9 +380,9 @@ class EditorTextSelectionOverlay {
     final currentLineRect = lineStart.expandToInclude(lineEnd);
 
     // Transform to root overlay coordinates.
-    final overlay =
-        Overlay.of(context, rootOverlay: true).context.findRenderObject()
-            as RenderBox?;
+    final overlay = Overlay.of(context, rootOverlay: true)
+        .context
+        .findRenderObject() as RenderBox?;
     final transformToOverlay = renderObject.getTransformTo(overlay);
 
     final overlayCaretRect = MatrixUtils.transformRect(
@@ -609,10 +610,9 @@ class _TextSelectionHandleOverlayState
     widget.onDragUpdate?.call(details.globalPosition);
   }
 
-  void _handleDragEnd() {
+  void _handleDragEnd(_) {
     widget.onDragEnd?.call();
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -673,33 +673,59 @@ class _TextSelectionHandleOverlayState
       math.max((interactiveRect.height - handleRect.height) / 2, 0),
     );
 
+    final eagerlyAcceptDragWhenCollapsed =
+        type == TextSelectionHandleType.collapsed &&
+            defaultTargetPlatform == TargetPlatform.iOS;
+
     return CompositedTransformFollower(
       link: layerLink,
       offset: interactiveRect.topLeft,
       showWhenUnlinked: false,
       child: FadeTransition(
         opacity: _opacity,
-        child: Container(
-          alignment: Alignment.topLeft,
+        child: SizedBox(
           width: interactiveRect.width,
           height: interactiveRect.height,
-          child: GestureDetector(
-            behavior: HitTestBehavior.translucent,
-            onPanStart: _handleDragStart,
-            onPanUpdate: _handleDragUpdate,
-            onPanEnd: (_) => _handleDragEnd(),
-            onPanCancel: _handleDragEnd,
-            child: Padding(
-              padding: EdgeInsets.only(
-                left: padding.left,
-                top: padding.top,
-                right: padding.right,
-                bottom: padding.bottom,
-              ),
-              child: widget.selectionControls.buildHandle(
-                context,
-                type,
-                lineHeight,
+          child: Align(
+            alignment: Alignment.topLeft,
+            child: RawGestureDetector(
+              behavior: HitTestBehavior.opaque,
+              gestures: <Type, GestureRecognizerFactory>{
+                PanGestureRecognizer:
+                    GestureRecognizerFactoryWithHandlers<PanGestureRecognizer>(
+                  () => PanGestureRecognizer(
+                    debugOwner: this,
+                    // Mouse events select the text and do not drag the cursor.
+                    supportedDevices: <PointerDeviceKind>{
+                      PointerDeviceKind.touch,
+                      PointerDeviceKind.stylus,
+                      PointerDeviceKind.unknown,
+                    },
+                  ),
+                  (instance) {
+                    instance
+                      ..dragStartBehavior = widget.dragStartBehavior
+                      ..gestureSettings = eagerlyAcceptDragWhenCollapsed
+                          ? const DeviceGestureSettings()
+                          : null
+                      ..onStart = _handleDragStart
+                      ..onUpdate = _handleDragUpdate
+                      ..onEnd = _handleDragEnd;
+                  },
+                ),
+              },
+              child: Padding(
+                padding: EdgeInsets.only(
+                  left: padding.left,
+                  top: padding.top,
+                  right: padding.right,
+                  bottom: padding.bottom,
+                ),
+                child: widget.selectionControls.buildHandle(
+                  context,
+                  type,
+                  lineHeight,
+                ),
               ),
             ),
           ),
