@@ -689,7 +689,7 @@ class _TextSelectionHandleOverlayState
           child: Align(
             alignment: Alignment.topLeft,
             child: RawGestureDetector(
-              behavior: HitTestBehavior.opaque,
+              behavior: HitTestBehavior.translucent,
               gestures: <Type, GestureRecognizerFactory>{
                 PanGestureRecognizer:
                     GestureRecognizerFactoryWithHandlers<PanGestureRecognizer>(
@@ -706,7 +706,7 @@ class _TextSelectionHandleOverlayState
                     instance
                       ..dragStartBehavior = widget.dragStartBehavior
                       ..gestureSettings = eagerlyAcceptDragWhenCollapsed
-                          ? const DeviceGestureSettings()
+                          ? const DeviceGestureSettings(touchSlop: 1)
                           : null
                       ..onStart = _handleDragStart
                       ..onUpdate = _handleDragUpdate
