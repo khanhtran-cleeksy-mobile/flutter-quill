@@ -1,0 +1,12 @@
+Analyzing flutter-quill...                                      
+
+   info • Don't invoke 'print' in production code • lib/src/widgets/delegate.dart:295:5 • avoid_print
+   info • 'translate' is deprecated and shouldn't be used. Use translateByVector3, translateByVector4, or translateByDouble instead • lib/src/widgets/quill_single_child_scroll_view.dart:262:15 • deprecated_member_use
+  error • The method 'IOSSystemContextMenuItemCustom' isn't defined for the type 'RawEditorState' • lib/src/widgets/raw_editor.dart:422:9 • undefined_method
+  error • The method 'IOSSystemContextMenuItemCustom' isn't defined for the type 'RawEditorState' • lib/src/widgets/raw_editor.dart:427:9 • undefined_method
+  error • The method 'IOSSystemContextMenuItemCustom' isn't defined for the type 'RawEditorState' • lib/src/widgets/raw_editor.dart:432:9 • undefined_method
+  error • The method 'IOSSystemContextMenuItemCustom' isn't defined for the type 'RawEditorState' • lib/src/widgets/raw_editor.dart:437:9 • undefined_method
+  error • The method 'IOSSystemContextMenuItemCustom' isn't defined for the type 'RawEditorState' • lib/src/widgets/raw_editor.dart:442:9 • undefined_method
+  error • The method 'IOSSystemContextMenuItemCustom' isn't defined for the type 'RawEditorState' • lib/src/widgets/raw_editor.dart:447:9 • undefined_method
+  error • The method 'IOSSystemContextMenuItemCustom' isn't defined for the type 'RawEditorState' • lib/src/widgets/raw_editor.dart:452:9 • undefined_method
+

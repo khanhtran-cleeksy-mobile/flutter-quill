@@ -159,6 +159,10 @@ mixin RawEditorStateTextInputClientMixin on EditorState
   @override
   AutofillScope? get currentAutofillScope => null;
 
+  // Preserve the default TextInputClient behavior for platform focus requests.
+  @override
+  bool onFocusReceived() => false;
+
   @override
   void updateEditingValue(TextEditingValue value) {
     if (!shouldCreateInputConnection) {
