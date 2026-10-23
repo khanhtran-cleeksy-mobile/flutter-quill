@@ -35,6 +35,7 @@ import 'editor.dart';
 import 'keyboard_listener.dart';
 import 'link.dart';
 import 'proxy.dart';
+import 'quill_clipboard_status_notifier.dart';
 import 'quill_single_child_scroll_view.dart';
 import 'raw_editor/raw_editor_state_selection_delegate_mixin.dart';
 import 'raw_editor/raw_editor_state_text_input_client_mixin.dart';
@@ -87,6 +88,7 @@ class RawEditor extends StatefulWidget {
     this.dialogTheme,
     this.onSetData,
     this.onPaste,
+    this.hasPasteableContent,
     this.contentInsertionConfiguration,
     this.keyboardType,
     this.textInputAction,
@@ -104,6 +106,9 @@ class RawEditor extends StatefulWidget {
   final Future Function()? onSetData;
 
   final Future Function()? onPaste;
+
+  /// See [QuillEditor.hasPasteableContent].
+  final Future<bool> Function()? hasPasteableContent;
 
   /// Controls the document being edited.
   final QuillController controller;
@@ -362,7 +367,11 @@ class RawEditorState extends EditorState
   String get pastePlainText => _pastePlainText;
   String _pastePlainText = '';
 
-  final ClipboardStatusNotifier _clipboardStatus = ClipboardStatusNotifier();
+  late final ClipboardStatusNotifier _clipboardStatus =
+      QuillClipboardStatusNotifier(
+    hasPasteableContent: () async =>
+        await widget.hasPasteableContent?.call() ?? false,
+  );
   final LayerLink _toolbarLayerLink = LayerLink();
   final LayerLink _startHandleLayerLink = LayerLink();
   final LayerLink _endHandleLayerLink = LayerLink();

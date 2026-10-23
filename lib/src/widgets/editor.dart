@@ -213,6 +213,7 @@ class QuillEditor extends StatefulWidget {
     this.contentInsertionConfiguration,
     this.onSetData,
     this.onPaste,
+    this.hasPasteableContent,
     this.scrollPadding = const EdgeInsets.all(10),
     Key? key,
     this.keyboardType,
@@ -473,6 +474,11 @@ class QuillEditor extends StatefulWidget {
   /// This field supported for paste action. This will override the default
   final Future Function()? onPaste;
 
+  /// Extra check for non-text clipboard content (e.g. images) that [onPaste]
+  /// can handle. Called when the clipboard has no strings, to decide whether
+  /// to show the paste button.
+  final Future<bool> Function()? hasPasteableContent;
+
   /// Configuration of handler for media content inserted via the system input
   /// method.
   ///
@@ -594,6 +600,7 @@ class QuillEditorState extends State<QuillEditor>
       contentInsertionConfiguration: widget.contentInsertionConfiguration,
       onSetData: widget.onSetData,
       onPaste: widget.onPaste,
+      hasPasteableContent: widget.hasPasteableContent,
       scrollPadding: widget.scrollPadding,
       keyboardType: widget.keyboardType,
       textInputAction: widget.textInputAction,
