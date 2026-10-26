@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_quill/flutter_quill.dart';
+import 'package:flutter_quill/flutter_quill.dart' hide Text;
 import 'package:flutter_test/flutter_test.dart';
 
 double _baseline(WidgetTester tester, Finder finder) {
@@ -19,7 +19,15 @@ void main() {
   const body = TextStyle(fontSize: 14, height: 1.6, color: Colors.black);
   const spacing = VerticalSpacing(0, 0);
 
-  Future<void> pumpEditor(WidgetTester tester, List<dynamic> ops) async {
+  // A leading style that differs from the body, so only baseline alignment
+  // can line them up.
+  const bigLeading = TextStyle(fontSize: 20, height: 1.2);
+
+  Future<void> pumpEditor(
+    WidgetTester tester,
+    List<dynamic> ops, {
+    TextStyle? leading,
+  }) async {
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
@@ -35,12 +43,12 @@ void main() {
             readOnly: false,
             expands: false,
             padding: EdgeInsets.zero,
-            // The leading style differs from the body on purpose (quill's
-            // default leading is 16px / 1.3), so only baseline alignment can
-            // line them up.
             customStyles: DefaultStyles(
               paragraph: DefaultTextBlockStyle(body, spacing, spacing, null),
               lists: DefaultListBlockStyle(body, spacing, spacing, null, null),
+              leading: leading == null
+                  ? null
+                  : DefaultTextBlockStyle(leading, spacing, spacing, null),
             ),
           ),
         ),
@@ -67,7 +75,7 @@ void main() {
         'insert': '\n',
         'attributes': {'list': 'ordered'},
       },
-    ]);
+    ], leading: bigLeading);
 
     final bullets = find.text('•');
     expect(
@@ -99,5 +107,41 @@ void main() {
       tester.getTopLeft(checkbox).dy,
       tester.getTopLeft(_line('Task')).dy,
     );
+  });
+
+  testWidgets('without a custom leading, bullets use the paragraph style', (
+    tester,
+  ) async {
+    await pumpEditor(tester, [
+      {'insert': 'Bullet'},
+      {
+        'insert': '\n',
+        'attributes': {'list': 'bullet'},
+      },
+      {'insert': 'Number'},
+      {
+        'insert': '\n',
+        'attributes': {'list': 'ordered'},
+      },
+    ]);
+
+    for (final leading in [find.text('•'), find.text('1.')]) {
+      final style = tester.widget<Text>(leading).style!;
+      expect(style.fontSize, body.fontSize);
+      expect(style.height, body.height);
+      expect(style.color, body.color);
+    }
+  });
+
+  testWidgets('a custom leading style still wins', (tester) async {
+    await pumpEditor(tester, [
+      {'insert': 'Bullet'},
+      {
+        'insert': '\n',
+        'attributes': {'list': 'bullet'},
+      },
+    ], leading: bigLeading);
+
+    expect(tester.widget<Text>(find.text('•')).style!.fontSize, 20);
   });
 }

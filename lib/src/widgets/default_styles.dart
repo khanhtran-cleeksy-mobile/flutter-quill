@@ -339,7 +339,14 @@ class DefaultStyles {
         code: other.code ?? code,
         indent: other.indent ?? indent,
         align: other.align ?? align,
-        leading: other.leading ?? leading,
+        // Without a custom leading, bullets and numbers follow a custom
+        // paragraph style instead of the default 16px leading, so they match
+        // the size and color of the list text.
+        leading: other.leading ??
+            (other.paragraph != null
+                ? DefaultTextBlockStyle(other.paragraph!.style,
+                    const VerticalSpacing(0, 0), const VerticalSpacing(0, 0), null)
+                : leading),
         sizeSmall: other.sizeSmall ?? sizeSmall,
         sizeLarge: other.sizeLarge ?? sizeLarge,
         sizeHuge: other.sizeHuge ?? sizeHuge);
