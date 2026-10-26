@@ -69,6 +69,13 @@ class _TextLineState extends State<TextLine> {
 
   final _linkRecognizers = <Node, GestureRecognizer>{};
 
+  /// Inline embed spans from the previous build, keyed by embed node.
+  ///
+  /// Returning the same span instance lets RichText see the line as
+  /// unchanged, so lines with embeds are not laid out again and the embed
+  /// widgets are not rebuilt on every keystroke or caret move.
+  final _embedSpans = <Embed, _EmbedSpanCacheEntry>{};
+
   QuillPressedKeys? _pressedKeys;
 
   void _pressedKeysChanged() {
@@ -102,6 +109,8 @@ class _TextLineState extends State<TextLine> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    // Embed builders read the context (theme, media query, locale).
+    _embedSpans.clear();
     if (_pressedKeys == null) {
       _pressedKeys = QuillPressedKeys.of(context);
       _pressedKeys!.addListener(_pressedKeysChanged);
@@ -115,6 +124,12 @@ class _TextLineState extends State<TextLine> {
   @override
   void didUpdateWidget(covariant TextLine oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (oldWidget.readOnly != widget.readOnly ||
+        oldWidget.embedBuilder != widget.embedBuilder ||
+        oldWidget.controller != widget.controller ||
+        oldWidget.styles != widget.styles) {
+      _embedSpans.clear();
+    }
     if (oldWidget.readOnly != widget.readOnly) {
       _richTextKey = UniqueKey();
       _linkRecognizers
@@ -178,49 +193,68 @@ class _TextLineState extends State<TextLine> {
   InlineSpan _getTextSpanForWholeLine(BuildContext context) {
     final lineStyle = _getLineStyle(widget.styles);
     if (!widget.line.hasEmbed) {
+      _embedSpans.clear();
       return _buildTextSpan(widget.styles, widget.line.children, lineStyle);
     }
 
     // The line could contain more than one Embed & more than one Text
     final textSpanChildren = <InlineSpan>[];
+    final usedEmbeds = <Embed>{};
     var textNodes = LinkedList<Node>();
-    for (var child in widget.line.children) {
+    for (final child in widget.line.children) {
       if (child is Embed) {
         if (textNodes.isNotEmpty) {
           textSpanChildren
               .add(_buildTextSpan(widget.styles, textNodes, lineStyle));
           textNodes = LinkedList<Node>();
         }
-        // Creates correct node for custom embed
-        if (child.value.type == BlockEmbed.customType) {
-          child = Embed(CustomBlockEmbed.fromJsonString(child.value.data))
-            ..applyStyle(child.style);
-        }
-        final embedBuilder = widget.embedBuilder(child);
-        final embedWidget = EmbedProxy(
-          embedBuilder.build(
-            context,
-            widget.controller,
-            child,
-            widget.readOnly,
-            true,
-            lineStyle,
-          ),
-        );
-        final embed = embedBuilder.buildWidgetSpan(embedWidget);
-        textSpanChildren.add(embed);
+        usedEmbeds.add(child);
+        textSpanChildren.add(_getEmbedSpan(child, lineStyle));
         continue;
       }
 
       // here child is Text node and its value is cloned
       textNodes.add(child.clone());
     }
+    _embedSpans.removeWhere((embed, _) => !usedEmbeds.contains(embed));
 
     if (textNodes.isNotEmpty) {
       textSpanChildren.add(_buildTextSpan(widget.styles, textNodes, lineStyle));
     }
 
     return TextSpan(style: lineStyle, children: textSpanChildren);
+  }
+
+  InlineSpan _getEmbedSpan(Embed node, TextStyle lineStyle) {
+    // An embed's value never changes (editing replaces the node), so only
+    // its style and the line style can change for the same node.
+    final cached = _embedSpans[node];
+    if (cached != null &&
+        cached.style == node.style &&
+        cached.lineStyle == lineStyle) {
+      return cached.span;
+    }
+
+    var embed = node;
+    // Creates correct node for custom embed
+    if (embed.value.type == BlockEmbed.customType) {
+      embed = Embed(CustomBlockEmbed.fromJsonString(embed.value.data))
+        ..applyStyle(embed.style);
+    }
+    final embedBuilder = widget.embedBuilder(embed);
+    final embedWidget = EmbedProxy(
+      embedBuilder.build(
+        context,
+        widget.controller,
+        embed,
+        widget.readOnly,
+        true,
+        lineStyle,
+      ),
+    );
+    final span = embedBuilder.buildWidgetSpan(embedWidget);
+    _embedSpans[node] = _EmbedSpanCacheEntry(node.style, lineStyle, span);
+    return span;
   }
 
   TextAlign _getTextAlign() {
@@ -500,6 +534,14 @@ class _TextLineState extends State<TextLine> {
         decoration: TextDecoration.combine(
             List.castFrom<dynamic, TextDecoration>(decorations)));
   }
+}
+
+class _EmbedSpanCacheEntry {
+  const _EmbedSpanCacheEntry(this.style, this.lineStyle, this.span);
+
+  final Style style;
+  final TextStyle lineStyle;
+  final InlineSpan span;
 }
 
 class EditableTextLine extends RenderObjectWidget {
