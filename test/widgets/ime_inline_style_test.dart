@@ -44,16 +44,61 @@ void main() {
     String text, {
     int? caret,
     TextRange composing = TextRange.empty,
+    TextAffinity affinity = TextAffinity.downstream,
   }) async {
     tester.testTextInput.updateEditingValue(TextEditingValue(
       text: '$text\n',
-      selection: TextSelection.collapsed(offset: caret ?? text.length),
+      selection: TextSelection.collapsed(
+        offset: caret ?? text.length,
+        affinity: affinity,
+      ),
       composing: composing,
     ));
     await tester.pump();
   }
 
   List<dynamic> ops() => controller.document.toDelta().toJson();
+
+  // Keyboards report the caret after typed text with upstream affinity.
+  testWidgets('delete then insert after existing words keeps bold', (
+    tester,
+  ) async {
+    await pumpEditor(tester, 'abc ');
+    controller.formatSelection(Attribute.bold);
+    for (final text in ['abc d', 'abc ', 'abc đ']) {
+      await ime(tester, text, affinity: TextAffinity.upstream);
+    }
+
+    expect(ops(), [
+      {'insert': 'abc '},
+      {
+        'insert': 'đ',
+        'attributes': {'bold': true},
+      },
+      {'insert': '\n'},
+    ]);
+  });
+
+  testWidgets('toggled bold survives a re-sent caret with another affinity', (
+    tester,
+  ) async {
+    await pumpEditor(tester, 'abc ');
+    controller
+      ..formatSelection(Attribute.bold)
+      ..updateSelection(
+        const TextSelection.collapsed(
+          offset: 4,
+          affinity: TextAffinity.upstream,
+        ),
+        ChangeSource.LOCAL,
+      );
+    await ime(tester, 'abc d', affinity: TextAffinity.upstream);
+
+    expect(ops()[1], {
+      'insert': 'd',
+      'attributes': {'bold': true},
+    });
+  });
 
   for (final attribute in [
     Attribute.bold,

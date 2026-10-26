@@ -293,7 +293,8 @@ class QuillController extends ChangeNotifier {
 
     if (deletedInlineStyle != null &&
         deletedInlineStyle.isNotEmpty &&
-        selection == TextSelection.collapsed(offset: index)) {
+        selection.isCollapsed &&
+        selection.baseOffset == index) {
       toggledStyle = toggledStyle.mergeAll(deletedInlineStyle);
     }
 
@@ -420,9 +421,11 @@ class QuillController extends ChangeNotifier {
       final style = getSelectionStyle();
       final notInlineStyle = style.attributes.values.where((s) => !s.isInline);
       toggledStyle = style.removeAll(notInlineStyle.toSet());
-    } else if (_selection != previous) {
-      // Keyboards often re-send the same caret position between edits; only
-      // a real caret move drops the toggled style.
+    } else if (_selection.baseOffset != previous.baseOffset ||
+        _selection.extentOffset != previous.extentOffset) {
+      // Keyboards often re-send the same caret position between edits, with
+      // a different affinity after typed text; only a real caret move drops
+      // the toggled style.
       toggledStyle = Style();
     }
     onSelectionChanged?.call(textSelection);
