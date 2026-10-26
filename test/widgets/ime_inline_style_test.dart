@@ -59,6 +59,93 @@ void main() {
 
   List<dynamic> ops() => controller.document.toDelta().toJson();
 
+  // Recorded from the iOS Vietnamese (Telex) keyboard typing "d" "d" after
+  // "abc ": it selects " d", deletes it, then types " " and "đ" again.
+  testWidgets('iOS Telex re-typing " d" as " đ" keeps bold on đ', (
+    tester,
+  ) async {
+    await pumpEditor(tester, 'abc ');
+    controller.formatSelection(Attribute.bold);
+    await ime(tester, 'abc d');
+    tester.testTextInput.updateEditingValue(const TextEditingValue(
+      text: 'abc d\n',
+      selection: TextSelection(baseOffset: 3, extentOffset: 5),
+    ));
+    await tester.pump();
+    await ime(tester, 'abc');
+    await ime(tester, 'abc ');
+    await ime(tester, 'abc đ');
+
+    expect(ops(), [
+      {'insert': 'abc '},
+      {
+        'insert': 'đ',
+        'attributes': {'bold': true},
+      },
+      {'insert': '\n'},
+    ]);
+    // Typing on continues in bold.
+    await ime(tester, 'abc đi');
+    expect(ops()[1], {
+      'insert': 'đi',
+      'attributes': {'bold': true},
+    });
+  });
+
+  // Recorded on iOS: after bold "việt", bold is turned off and " d" typed;
+  // the keyboard then deletes the plain " d" and re-types " đ" right after
+  // the bold word.
+  testWidgets('iOS Telex re-typing plain text after bold stays plain', (
+    tester,
+  ) async {
+    await pumpEditor(tester, 'abc');
+    controller
+      ..formatText(0, 3, Attribute.bold)
+      ..formatSelection(Attribute.clone(Attribute.bold, null));
+    await ime(tester, 'abc ');
+    await ime(tester, 'abc d');
+    tester.testTextInput.updateEditingValue(const TextEditingValue(
+      text: 'abc d\n',
+      selection: TextSelection(baseOffset: 3, extentOffset: 5),
+    ));
+    await tester.pump();
+    await ime(tester, 'abc');
+    await ime(tester, 'abc ');
+    await ime(tester, 'abc đ');
+
+    expect(ops(), [
+      {
+        'insert': 'abc',
+        'attributes': {'bold': true},
+      },
+      {'insert': ' đ\n'},
+    ]);
+  });
+
+  testWidgets('re-typing mixed styles restores each character', (
+    tester,
+  ) async {
+    await pumpEditor(tester, 'ab');
+    controller
+      ..formatText(0, 1, Attribute.italic)
+      ..formatText(1, 1, Attribute.bold);
+    await ime(tester, '');
+    await ime(tester, 'x');
+    await ime(tester, 'xy');
+
+    expect(ops(), [
+      {
+        'insert': 'x',
+        'attributes': {'italic': true},
+      },
+      {
+        'insert': 'y',
+        'attributes': {'bold': true},
+      },
+      {'insert': '\n'},
+    ]);
+  });
+
   // Keyboards report the caret after typed text with upstream affinity.
   testWidgets('delete then insert after existing words keeps bold', (
     tester,

@@ -42,6 +42,7 @@ class QuillController extends ChangeNotifier {
   Document get document => _document;
   set document(doc) {
     _document = doc;
+    _deletedRun = null;
 
     // Prevent the selection from
     _selection = const TextSelection(baseOffset: 0, extentOffset: 0);
@@ -238,13 +239,23 @@ class QuillController extends ChangeNotifier {
       return;
     }
 
-    // A pure delete keeps the deleted text's inline style for the next insert
-    // at the same spot. Vietnamese IMEs (Telex/VNI) turn "d" + "d" into "đ" by
-    // deleting "d" and then inserting "đ"; without this, "đ" would take the
-    // style of the character before it and lose e.g. bold.
-    final deletedInlineStyle = data is String && data.isEmpty && len > 0
-        ? _inlineStyleAt(index)
+    // Vietnamese IMEs (Telex/VNI) rebuild accented text by deleting it and
+    // typing it again: "d" + "d" becomes delete "d", insert "đ", and the iOS
+    // keyboard even deletes " d" and re-inserts " " then "đ". Remember the
+    // inline style of every deleted character, and give text re-typed at the
+    // same spot the style of the character it replaces, position by position.
+    // Otherwise it takes the style of the character before it and loses bold.
+    final isPureDelete = data is String && data.isEmpty && len > 0;
+    final deletedStyles = isPureDelete ? _inlineStylesIn(index, len) : null;
+    final retypedRun = _deletedRun != null &&
+            len == 0 &&
+            data is String &&
+            data.isNotEmpty &&
+            !data.contains('\n') &&
+            index == _deletedRun!.next
+        ? _deletedRun
         : null;
+    _deletedRun = null;
 
     Delta? delta;
     if (len > 0 || data is! String || data.isNotEmpty) {
@@ -270,6 +281,9 @@ class QuillController extends ChangeNotifier {
           ..retain(data is String ? data.length : 1, toggledStyle.toJson());
         document.compose(retainDelta, ChangeSource.LOCAL);
       }
+      if (retypedRun != null) {
+        _restoreDeletedStyles(retypedRun, index, data as String);
+      }
     }
 
     if (textSelection != null) {
@@ -291,11 +305,13 @@ class QuillController extends ChangeNotifier {
       }
     }
 
-    if (deletedInlineStyle != null &&
-        deletedInlineStyle.isNotEmpty &&
+    if (retypedRun != null && retypedRun.next < retypedRun.end) {
+      _deletedRun = retypedRun;
+    } else if (deletedStyles != null &&
+        deletedStyles.isNotEmpty &&
         selection.isCollapsed &&
         selection.baseOffset == index) {
-      toggledStyle = toggledStyle.mergeAll(deletedInlineStyle);
+      _deletedRun = _DeletedRun(index, deletedStyles);
     }
 
     if (ignoreFocus) {
@@ -320,6 +336,7 @@ class QuillController extends ChangeNotifier {
   }
 
   void formatText(int index, int len, Attribute? attribute) {
+    _deletedRun = null;
     if (len == 0 &&
         attribute!.isInline &&
         attribute.key != Attribute.link.key) {
@@ -362,11 +379,18 @@ class QuillController extends ChangeNotifier {
   }
 
   void updateSelection(TextSelection textSelection, ChangeSource source) {
+    // Moving away from deleted text means it is not being re-typed.
+    final run = _deletedRun;
+    if (run != null &&
+        !(textSelection.isCollapsed && textSelection.baseOffset == run.next)) {
+      _deletedRun = null;
+    }
     _updateSelection(textSelection, source);
     notifyListeners();
   }
 
   void compose(Delta delta, TextSelection textSelection, ChangeSource source) {
+    _deletedRun = null;
     if (delta.isNotEmpty) {
       document.compose(delta, source);
     }
@@ -431,20 +455,49 @@ class QuillController extends ChangeNotifier {
     onSelectionChanged?.call(textSelection);
   }
 
-  /// Inline attributes (no link) of the character at [index].
-  Style _inlineStyleAt(int index) {
+  /// Text deleted by the last [replaceText] that may be typed again, see
+  /// [replaceText].
+  _DeletedRun? _deletedRun;
+
+  /// Inline attributes (no link) of each character in `[index, index + len)`.
+  List<Style> _inlineStylesIn(int index, int len) {
+    final styles = <Style>[];
     final itr = DeltaIterator(document.toDelta())..skip(index);
-    if (!itr.hasNext) {
-      return Style();
+    while (styles.length < len && itr.hasNext) {
+      final op = itr.next(len - styles.length);
+      final style = op.data is String && op.attributes != null
+          ? _inlineOnly(Style.fromJson(op.attributes))
+          : Style();
+      styles.addAll(List.filled(op.length!, style));
     }
-    final op = itr.next(1);
-    if (op.data is! String || op.attributes == null) {
-      return Style();
+    return styles;
+  }
+
+  Style _inlineOnly(Style style) => style.removeAll(style.values
+      .where((attr) => !attr.isInline || attr.key == Attribute.link.key)
+      .toSet());
+
+  /// Gives [text], just inserted at [index], the inline styles of the
+  /// characters of [run] it re-types.
+  void _restoreDeletedStyles(_DeletedRun run, int index, String text) {
+    final current = _inlineStylesIn(index, text.length);
+    for (var i = 0; i < text.length && run.next < run.end; i++, run.consumed++) {
+      final target = run.styles[run.consumed];
+      if (i >= current.length || current[i] == target) {
+        continue;
+      }
+      final attributes = <String, dynamic>{
+        for (final attr in current[i].values)
+          if (!target.containsKey(attr.key)) attr.key: null,
+        ...target.toJson() ?? const <String, dynamic>{},
+      };
+      document.compose(
+        Delta()
+          ..retain(index + i)
+          ..retain(1, attributes),
+        ChangeSource.LOCAL,
+      );
     }
-    final style = Style.fromJson(op.attributes);
-    return style.removeAll(style.values
-        .where((attr) => !attr.isInline || attr.key == Attribute.link.key)
-        .toSet());
   }
 
   /// Given offset, find its leaf node in document
@@ -464,4 +517,21 @@ class QuillController extends ChangeNotifier {
 
   // Notify toolbar buttons directly with attributes
   Map<String, Attribute> toolbarButtonToggler = {};
+}
+
+/// Inline styles of text removed at [start], kept while the same spot is
+/// being typed again.
+class _DeletedRun {
+  _DeletedRun(this.start, this.styles);
+
+  final int start;
+  final List<Style> styles;
+
+  /// How many of the deleted characters have been typed again.
+  int consumed = 0;
+
+  /// Document offset of the next character expected to be typed again.
+  int get next => start + consumed;
+
+  int get end => start + styles.length;
 }
