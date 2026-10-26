@@ -253,6 +253,7 @@ class Document {
     delta.trim();
     assert(delta.isNotEmpty);
 
+    _plainText = null;
     var offset = 0;
     delta = _transform(delta);
     final originalDelta = toDelta();
@@ -352,11 +353,26 @@ class Document {
     _history.clear();
   }
 
+  /// Cached result of [toPlainText] without embed builders. The tree only
+  /// changes in [compose] (and [_loadDocument] in the constructors, before
+  /// anything can read it), and [compose] clears it.
+  String? _plainText;
+
   /// Returns plain text representation of this document.
   String toPlainText([
     Iterable<EmbedBuilder>? embedBuilders,
     EmbedBuilder? unknownEmbedBuilder,
-  ]) =>
+  ]) {
+    if (embedBuilders == null && unknownEmbedBuilder == null) {
+      return _plainText ??= _buildPlainText(null, null);
+    }
+    return _buildPlainText(embedBuilders, unknownEmbedBuilder);
+  }
+
+  String _buildPlainText(
+    Iterable<EmbedBuilder>? embedBuilders,
+    EmbedBuilder? unknownEmbedBuilder,
+  ) =>
       _root.children
           .map((e) => e.toPlainText(embedBuilders, unknownEmbedBuilder))
           .join();

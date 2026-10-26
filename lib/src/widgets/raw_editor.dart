@@ -383,7 +383,8 @@ class RawEditorState extends EditorState
   bool _dirty = false;
   bool _liveTextEnabled = false;
 
-  TextSelection get selection => textEditingValue.selection;
+  // Same value as textEditingValue.selection, without building the plain text.
+  TextSelection get selection => controller.selection;
 
   bool get isSelectedText =>
       selection.isValid && selection.end > selection.start;
