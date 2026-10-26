@@ -1097,8 +1097,17 @@ class RenderEditableTextLine extends RenderEditableBox {
           maxWidth: indentWidth,
           maxHeight: _body!.size.height);
       _leading!.layout(leadingConstraints, parentUsesSize: true);
+      // Put the bullet / number on the baseline of the first text line, like
+      // HTML lists do. Leadings without a baseline (checkboxes) stay on top.
+      final bodyBaseline = _body!
+          .getDistanceToBaseline(TextBaseline.alphabetic, onlyReal: true);
+      final leadingBaseline = _leading!
+          .getDistanceToBaseline(TextBaseline.alphabetic, onlyReal: true);
+      final baselineShift = bodyBaseline != null && leadingBaseline != null
+          ? bodyBaseline - leadingBaseline
+          : 0.0;
       (_leading!.parentData as BoxParentData).offset =
-          Offset(0, _resolvedPadding!.top);
+          Offset(0, _resolvedPadding!.top + baselineShift);
     }
 
     size = constraints.constrain(Size(
