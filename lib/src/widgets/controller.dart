@@ -238,6 +238,14 @@ class QuillController extends ChangeNotifier {
       return;
     }
 
+    // A pure delete keeps the deleted text's inline style for the next insert
+    // at the same spot. Vietnamese IMEs (Telex/VNI) turn "d" + "d" into "đ" by
+    // deleting "d" and then inserting "đ"; without this, "đ" would take the
+    // style of the character before it and lose e.g. bold.
+    final deletedInlineStyle = data is String && data.isEmpty && len > 0
+        ? _inlineStyleAt(index)
+        : null;
+
     Delta? delta;
     if (len > 0 || data is! String || data.isNotEmpty) {
       delta = document.replace(index, len, data);
@@ -281,6 +289,12 @@ class QuillController extends ChangeNotifier {
           ChangeSource.LOCAL,
         );
       }
+    }
+
+    if (deletedInlineStyle != null &&
+        deletedInlineStyle.isNotEmpty &&
+        selection == TextSelection.collapsed(offset: index)) {
+      toggledStyle = toggledStyle.mergeAll(deletedInlineStyle);
     }
 
     if (ignoreFocus) {
@@ -396,6 +410,7 @@ class QuillController extends ChangeNotifier {
   }
 
   void _updateSelection(TextSelection textSelection, ChangeSource source) {
+    final previous = _selection;
     _selection = textSelection;
     final end = document.length - 1;
     _selection = selection.copyWith(
@@ -405,10 +420,28 @@ class QuillController extends ChangeNotifier {
       final style = getSelectionStyle();
       final notInlineStyle = style.attributes.values.where((s) => !s.isInline);
       toggledStyle = style.removeAll(notInlineStyle.toSet());
-    } else {
+    } else if (_selection != previous) {
+      // Keyboards often re-send the same caret position between edits; only
+      // a real caret move drops the toggled style.
       toggledStyle = Style();
     }
     onSelectionChanged?.call(textSelection);
+  }
+
+  /// Inline attributes (no link) of the character at [index].
+  Style _inlineStyleAt(int index) {
+    final itr = DeltaIterator(document.toDelta())..skip(index);
+    if (!itr.hasNext) {
+      return Style();
+    }
+    final op = itr.next(1);
+    if (op.data is! String || op.attributes == null) {
+      return Style();
+    }
+    final style = Style.fromJson(op.attributes);
+    return style.removeAll(style.values
+        .where((attr) => !attr.isInline || attr.key == Attribute.link.key)
+        .toSet());
   }
 
   /// Given offset, find its leaf node in document
